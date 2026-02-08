@@ -1,0 +1,10 @@
+Package: fussclust
+Title: Fuzzy Unsupervised and Semi-Supervised Clustering
+Version: 0.0.0.9000
+Authors@R: 
+    person("Kamil", "Kmita", , "32544762+kkmita@users.noreply.github.com" , role = c("aut", "cre"))
+Description: An ultimate package for fuzzy clustering.
+License: MIT + file LICENSE
+Encoding: UTF-8
+Roxygen: list(markdown = TRUE)
+RoxygenNote: 7.3.3
