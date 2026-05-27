@@ -4,25 +4,51 @@
 #' Unsupervised Fuzzy c-Means algorithm.
 #' 
 #' @param X
-#' a matrix *X* with predictor variables.
+#' Features matrix *X*.
 #'
 #' @param C
-#' a number of clusters to find.
+#' Number of clusters.
 #'
 #' @param U
-#' optionally: a first memberships matrix to initialize the algorithm.
-#' Used mainly for reproducibility to compare calculations with other packages
-#' (e.g. in Python).
+#' Optionally: a concrete initialization memberships matrix.
+#' Used mainly for reproducibility.
+#' Default value `NULL` - algorithm uses random initialization in such case.
+#' 
+#' @param max_iter
+#' Maximum number of iterations. Default value: 200.
+#' 
+#' @param conv_criterion
+#' Convergence criterion value used at the end of each iteration of
+#' Alternating Optimization algorithm.
 #'
 #' @param function_dist
-#' A function of two arguments: matrices X and V of the same
+#' Optionally: a function of two arguments: matrices *X* and *V* of the same
 #' number of columns.
 #' It should return a matrix of (nrow(X) x nrow(V)) of distances
-#' between each row of X and all rows of V.
+#' between each row of *X* and all rows of *V*.
 #' In case of Euclidean distance, the result should not be squared!
 #'
 #' @export
 #'
+#' @return An object of class `fcm` containing:
+#' \describe{
+#'   \item{U}{An \eqn{N \times c} matrix of cluster memberships.}
+#'   \item{V}{A \eqn{c \times p} matrix of cluster prototypes.}
+#'   \item{function_dist}{An object of class `function` used to calculate distances.}
+#'   \item{counter}{Integer number of iterations until convergence.}
+#'   \item{V_history}{A list of length `counter` with \eqn{c \times p} 
+#'   prototypes matrices estimated in each loop of the algorithm.}
+#'   \item{U_history}{A list of length `counter` with \eqn{N \times c} 
+#'   memberships matrices estimated in each loop of the algorithm.}
+#'   \item{Phi_history}{A list of length `counter` with \eqn{N \times c} 
+#'   phi weights in each loop of the algorithm.}
+#' }
+#' 
+#' @examples
+#' X <- matrix(rnorm(100), ncol = 2)
+#' model_fcm <- fussclust::FCM(X = X, C = 2)
+#' print(model_fcm$V)
+#' 
 FCM <- function(
     X,
     C,
@@ -31,6 +57,9 @@ FCM <- function(
     conv_criterion = 1e-4,
     function_dist = rdist::cdist
 ) {
+  if (ncol(X) != C) {
+    stop("number of columns in `X` must match `C`.", call. = FALSE)
+  }
   
   if (is.null(U)) {
     U <- matrix(stats::runif(nrow(X)*C), ncol=C)

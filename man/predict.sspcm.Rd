@@ -2,18 +2,30 @@
 % Please edit documentation in R/sspcm.R
 \name{predict.sspcm}
 \alias{predict.sspcm}
-\title{Soft assignment score function}
+\title{Predict method for SSPCM objects}
 \usage{
-\method{predict}{sspcm}(object, newdata)
+\method{predict}{sspcm}(object, X, ...)
 }
 \arguments{
-\item{object}{object}
+\item{object}{An object of class \code{sspcm}}
 
-\item{newdata}{data to be predicted}
+\item{X}{New data matrix of size \eqn{N \times p}}
+
+\item{...}{Not used}
 }
 \value{
-typicalities matrix
+A matrix of size \eqn{N \times C}, where \eqn{C} is the number of columns
+in \code{object$U} containing predicted memberships.
 }
 \description{
-Soft assignment score function
+Predict method for SSPCM objects
+}
+\examples{
+X <- matrix(rnorm(100), ncol = 2)
+superF <- matrix(0, nrow = nrow(X), ncol = ncol(X))
+superF[1:10, 1] <- 1
+superF[11:20, 2] <- 1
+model_sspcm <- SSPCM(X = X, C = 2, superF = superF, alpha = 1)
+predict(model_sspcm, matrix(rnorm(2), ncol = 2))
+
 }

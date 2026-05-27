@@ -1,35 +1,67 @@
-#' Semi-Supervised Fuzzy C-Means model.
+#' Possibilistic c-Means model.
 #'
 #' @description
-#' If *alpha* and *F_* are not supplied (their default values are `NULL`),
-#' then a regular unsupervised Fuzzy C-Means algorithm is fitted.
-#'
+#' Unsupervised Possibilistic c-Means algorithm.
+#' 
 #' @param X
-#' a matrix *X* with predictor variables.
+#' Features matrix *X*.
 #'
 #' @param C
-#' a number of clusters to find.
+#' Number of clusters.
+#' 
+#' @param gammas
+#' Optionally: a vector of cluster-specific gamma hyperparameters.
+#' Default value: `NULL`. In such case, the initialization value depends on
+#' `initFCM` value. If `initFCM` is `NULL`, then vector filled with ones is used.
+#' If `initFCM` is not `NULL`, then Fuzzy c-Means model is fitted, and the algorithm
+#' implemented in `init_gamma` function is used to calculate the cluster-specific
+#' gamma hyperparameters.
+#'
+#' @param initFCM
+#' Default value: `NULL`. If `gammas` is not `NULL`, and `initFCM` is not `NULL`,
+#' then special algorithm based on creating Fuzzy c-Means model and appropriately
+#' calculating values of hyperparameters gamma is initiated.
 #'
 #' @param U
-#' optionally: a first memberships matrix to initialize the algorithm.
-#' Used mainly for reproducibility to compare calculations with other packages
-#' (e.g. in Python).
+#' Optionally: a concrete initialization memberships matrix.
+#' Used mainly for reproducibility.
+#' Default value `NULL` - algorithm uses random initialization in such case.
+#' 
+#' @param max_iter
+#' Maximum number of iterations. Default value: 200.
+#' 
+#' @param conv_criterion
+#' Convergence criterion value used at the end of each iteration of
+#' Alternating Optimization algorithm.
 #'
 #' @param function_dist
-#' A function of two arguments: matrices X and V of the same
+#' Optionally: a function of two arguments: matrices *X* and *V* of the same
 #' number of columns.
 #' It should return a matrix of (nrow(X) x nrow(V)) of distances
-#' between each row of X and all rows of V.
+#' between each row of *X* and all rows of *V*.
 #' In case of Euclidean distance, the result should not be squared!
 #'
-#' @param alpha
-#' the scaling factor, a floating point > 0.
-#'
-#' @param F_
-#' the supervision  binary matrix of the same dimension as *U*.
-#'
 #' @export
-#'
+#' 
+#' @return An object of class `pcm` containing:
+#' \describe{
+#'   \item{U}{An \eqn{N \times c} matrix of cluster memberships.}
+#'   \item{V}{A \eqn{c \times p} matrix of cluster prototypes.}
+#'   \item{function_dist}{An object of class `function` used to calculate distances.}
+#'   \item{counter}{Integer number of iterations until convergence.}
+#'   \item{V_history}{A list of length `counter` with \eqn{c \times p} 
+#'   prototypes matrices estimated in each loop of the algorithm.}
+#'   \item{U_history}{A list of length `counter` with \eqn{N \times c} 
+#'   memberships matrices estimated in each loop of the algorithm.}
+#'   \item{Phi_history}{A list of length `counter` with \eqn{N \times c} 
+#'   phi weights in each loop of the algorithm.}
+#' }
+#' 
+#' @examples
+#' X <- matrix(rnorm(99), ncol = 3)
+#' model_pcm <- PCM(X = X, C = 3)
+#' print(model_pcm$V)
+#' 
 PCM <- function(
     X,
     C,
@@ -40,6 +72,16 @@ PCM <- function(
     conv_criterion = 1e-4,
     function_dist = rdist::cdist
 ) {
+  if ( (!is.numeric(gammas) & !is.null(gammas)) 
+       || (is.numeric(gammas) & length(gammas) != C)
+  ){
+    stop("gammas must be either NULL or a numeric vector of length C.", 
+         call. = FALSE)
+  }
+  
+  if (ncol(X) != C) {
+    stop("number of columns in `X` must match `C`.", call. = FALSE)
+  }  
   
   if (is.null(U)) {
     U <- matrix(stats::runif(nrow(X)*C), ncol=C)
@@ -74,7 +116,7 @@ PCM <- function(
     
     V_history[[counter]] <- V
     
-    U <- estimate_T(X, V, function_dist, gammas)
+    U <- estimate_T(D = function_dist(X, V)^2, gammas)
 
     U_history[[counter]] <- U
     

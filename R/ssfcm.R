@@ -5,31 +5,61 @@
 #' then a regular unsupervised Fuzzy C-Means algorithm is fitted.
 #'
 #' @param X
-#' a matrix *X* with predictor variables.
+#' Features matrix *X*.
 #'
 #' @param C
-#' a number of clusters to find.
+#' Number of clusters.
 #'
 #' @param U
-#' optionally: a first memberships matrix to initialize the algorithm.
-#' Used mainly for reproducibility to compare calculations with other packages
-#' (e.g. in Python).
+#' Optionally: a concrete initialization memberships matrix.
+#' Used mainly for reproducibility.
+#' Default value `NULL` - algorithm uses random initialization in such case.
+#'
+#' @param max_iter
+#' Maximum number of iterations. Default value: 200.
+#' 
+#' @param conv_criterion
+#' Convergence criterion value used at the end of each iteration of
+#' Alternating Optimization algorithm.
 #'
 #' @param function_dist
-#' A function of two arguments: matrices X and V of the same
+#' Optionally: a function of two arguments: matrices *X* and *V* of the same
 #' number of columns.
 #' It should return a matrix of (nrow(X) x nrow(V)) of distances
-#' between each row of X and all rows of V.
+#' between each row of *X* and all rows of *V*.
 #' In case of Euclidean distance, the result should not be squared!
 #'
 #' @param alpha
-#' the scaling factor, a floating point > 0.
+#' Scaling factor, a floating point > 0 regulating the impact of partial supervision.
 #'
-#' @param F_
-#' the supervision  binary matrix of the same dimension as *U*.
+#' @param superF
+#' Binary supervision matrix of the same dimension as *U*.
 #'
 #' @export
-#'
+#' 
+#' @return An object of class `ssfcm` containing:
+#' \describe{
+#'   \item{U}{An \eqn{N \times c} matrix of cluster memberships.}
+#'   \item{V}{A \eqn{c \times p} matrix of cluster prototypes.}
+#'   \item{function_dist}{An object of class `function` used to calculate distances.}
+#'   \item{counter}{Integer number of iterations until convergence.}
+#'   \item{V_history}{A list of length `counter` with \eqn{c \times p} 
+#'   prototypes matrices estimated in each loop of the algorithm.}
+#'   \item{U_history}{A list of length `counter` with \eqn{N \times c} 
+#'   memberships matrices estimated in each loop of the algorithm.}
+#'   \item{Phi_history}{A list of length `counter` with \eqn{N \times c} 
+#'   phi weights in each loop of the algorithm.}
+#'   \item{alpha}{A value of the scaling factor used.}
+#' }
+#' 
+#' @examples
+#' X <- matrix(rnorm(100), ncol = 2)
+#' superF <- matrix(0, nrow = nrow(X), ncol = ncol(X))
+#' superF[1:10, 1] <- 1
+#' superF[11:20, 2] <- 1
+#' model_ssfcm <- SSFCM(X = X, C = 2, superF = superF, alpha = 1)
+#' print(model_ssfcm$V)
+#' 
 SSFCM <- function(
     X,
     C,
@@ -40,10 +70,17 @@ SSFCM <- function(
     alpha = NULL,
     superF = NULL
 ) {
-  
-  if (!is.null(alpha) && length(alpha) != 1) {
-    stop("'alpha' must be either NULL or a scalar (length 1 value).")
+  if (!is.numeric(alpha) || length(alpha) != 1 || !is.null(dim(alpha))) {
+    stop("alpha must be either NULL or a scalar.", call. = FALSE)
   }
+  
+  if (ncol(X) != C) {
+    stop("number of columns in `X` must match `C`.", call. = FALSE)
+  }
+  
+  if (!is.null(superF) && ( (nrow(superF) != nrow(X)) || (ncol(superF) != C) )) {
+    stop("dimension of `superF` must be the same as dimension of `U`.")
+  }  
   
   if (is.null(U)) {
     U <- matrix(stats::runif(nrow(X)*C), ncol=C)
@@ -70,11 +107,9 @@ SSFCM <- function(
     V_history[[counter]] <- V
     
     U <- estimate_U(
-      X = X,
-      V = V,
+      D = function_dist(X, V)^2,
       superF = superF,
-      alpha = alpha,
-      function_dist = function_dist)
+      alpha = alpha)
     
     U_history[[counter]] <- U
     
@@ -105,16 +140,28 @@ SSFCM <- function(
 #' Predict method for SSFCM objects
 #'
 #' @param object An object of class \code{ssfcm}
-#' @param X New data matrix
+#' 
+#' @param X New data matrix of size \eqn{N \times p}
+#' 
 #' @param ... Not used
 #'
-#' @return A data frame with predicted labels
-#'
 #' @method predict ssfcm
+#' 
 #' @export
-predict.ssfcm <- function(object, .X, ...) {
+#' 
+#' @return A matrix of size \eqn{N \times C}, where \eqn{C} is the number of columns
+#' in `object$U` containing predicted memberships.
+#' 
+#' @examples
+#' X <- matrix(rnorm(100), ncol = 2)
+#' superF <- matrix(0, nrow = nrow(X), ncol = ncol(X))
+#' superF[1:10, 1] <- 1
+#' superF[11:20, 2] <- 1
+#' model_ssfcm <- SSFCM(X = X, C = 2, superF = superF, alpha = 1)
+#' predict(model_ssfcm, matrix(rnorm(2), ncol = 2))
+predict.ssfcm <- function(object, X, ...) {
   Dpred <- object$function_dist(
-    .X,
+    X,
     object$V
   )^2
   

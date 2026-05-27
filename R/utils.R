@@ -2,6 +2,7 @@
 #' (stands for "distances vertically exploded") matrices.
 #'
 #' @param A Matrix of size N x c.
+#' 
 #' @param vertical Boolean switch.
 #' If `TRUE`, create DVE (vertical explosion).
 #' If `FALSE`, create DHE (horizontal explosion).
@@ -22,12 +23,12 @@ dheve <- function(A, vertical) {
 #' evidence matrix E.
 #'
 #' @param dhe DHE matrix of size Nc x c.
+#' 
 #' @param dve DVE matrix of size Nc x c.
 #'
 #' @return Matrix of size Nc x 1.
 #'
 gamma_fcm <- function(dhe, dve) {
-  # 1 / ((dhe/dve) %*% matrix(rep(1, ncol(dhe))))
   1 / rowSums(dhe/dve)
 }
 
@@ -36,13 +37,14 @@ gamma_fcm <- function(dhe, dve) {
 #' (column vectors) to a block matrix with horizontal blocks (row vectors).
 #'
 #' @param A Matrix of size Nc x 1.
+#' 
 #' @param c Number of columns in the wanted matrix.
 #' Associated with the number of clusters.
 #'
 #' @return Matrix of size N x c.
 #'
 xi_fcm <- function(A, c) {
-  matrix(A, ncol=c, byrow=TRUE)
+  matrix(A, ncol = c, byrow = TRUE)
 }
 
 
@@ -60,14 +62,13 @@ calculate_evidence <- function(D) {
 }
 
 
-#' Equation to calculate clusters' prototypes matrix $\hat{V}$.
+#' Equation to calculate clusters' prototypes matrix \eqn{\hat{V}}.
 #'
 #' @param Phi Matrix with weights of size N x c.
 #'
 #' @param X Matrix with predictors of size N x p.
 #'
 #' @return Clusters' prototypes matrix of size c x p.
-#' @export
 #'
 estimate_V <- function(Phi, X) {
   V <- (t(Phi) %*% X) / colSums(Phi)
@@ -75,36 +76,22 @@ estimate_V <- function(Phi, X) {
 }
 
 
-#' Estimated U matrix with memberships.
+#' Estimated U matrix with memberships in semi-supervised case.
 #'
-#' @param X
-#' a matrix *X* of dimension (N, p) containing predictor variables.
+#' @param D Distances matrix of size N x c.
 #'
-#' @param V
-#' a prototypes matrix of dimension (c, p)
-#'
-#' @param F_
-#' the supervision  binary matrix of the same dimension as *U*.
+#' @param superF
+#' Binary supervision matrix of size N x c.
 #'
 #' @param alpha
-#' the scaling factor, a floating point > 0.
-#'
-#' @param function_dist
-#' A function of two arguments: matrices X and V of the same
-#' number of columns.
-#' It should return a matrix of (nrow(X) x nrow(V)) of distances
-#' between each row of X and all rows of V.
-#' In case of Euclidean distance, the result should not be squared!
+#' Scaling factor, a floating point > 0 regulating the impact of partial supervision.
 #'
 estimate_U <-
   function(
-    X,
-    V,
+    D,
     superF,
-    alpha,
-    function_dist
+    alpha
   ) {
-    D <- function_dist(X, V)^2
     E <- calculate_evidence(D)
     
     U <- (E + alpha * superF) / (1 + alpha * rowSums(superF))
@@ -113,39 +100,18 @@ estimate_U <-
   }
 
 
-
-#' Estimated T matrix with typicalities.
+#' Estimated T matrix with typicalities in unsupervised case.
 #'
-#' @param X
-#' a matrix *X* of dimension (N, p) containing predictor variables.
-#'
-#' @param V
-#' a prototypes matrix of dimension (c, p)
-#'
-#' @param superF
-#' the supervisionbinary matrix of the same dimension as *U*.
-#'
-#' @param alpha
-#' a *N*-vector of observation-specific scaling factor values
-#'
-#' @param function_dist
-#' A function of two arguments: matrices X and V of the same
-#' number of columns.
-#' It should return a matrix of (nrow(X) x nrow(V)) of distances
-#' between each row of X and all rows of V.
-#' In case of Euclidean distance, the result should not be squared!
-#'
+#' @param D Distances matrix of size N x c.
+#' 
 #' @param gammas
-#' a *c*-vector of cluster-specific gamma parameter
+#' a c-vector of cluster-specific gamma hyperparameters.
 #'
 estimate_T <-
   function(
-    X,
-    V,
-    function_dist,
+    D,
     gammas
   ) {
-    D <- function_dist(X, V)^2
     G <- matrix(gammas, nrow = 1)[rep(1, nrow(D)), ]
     Tp <- G / (G + D)
     
@@ -153,6 +119,12 @@ estimate_T <-
   }
 
 
+#' Initialization procedure to calculate values of gamma hyperparameters.
+#' 
+#' @param .model estimated model of class `fcm`
+#' 
+#' @param .X features matrix of size N x c
+#'
 init_gamma <- function(.model, .X) {
   # recreate distances
   .D <- .model$function_dist(.X, .model$V)
@@ -162,42 +134,34 @@ init_gamma <- function(.model, .X) {
 }
 
 
-#' Estimated T matrix with typicalities.
+#' Estimated T matrix with typicalities in semi-supervised case.
 #'
-#' @param X
-#' a matrix *X* of dimension (N, p) containing predictor variables.
-#'
-#' @param V
-#' a prototypes matrix of dimension (c, p)
+#' @param D Distances matrix of size N x c.
 #'
 #' @param superF
-#' the supervisionbinary matrix of the same dimension as *U*.
+#' Binary supervision matrix of size N x c.
 #'
 #' @param alpha
-#' a *N*-vector of observation-specific scaling factor values
-#'
-#' @param function_dist
-#' A function of two arguments: matrices X and V of the same
-#' number of columns.
-#' It should return a matrix of (nrow(X) x nrow(V)) of distances
-#' between each row of X and all rows of V.
-#' In case of Euclidean distance, the result should not be squared!
-#'
+#' Scaling factor, a floating point > 0 regulating the impact of partial supervision.
+#' 
 #' @param gammas
-#' a *c*-vector of cluster-specific gamma parameter
-#'
+#' a c-vector of cluster-specific gamma hyperparameters.
+#' 
+#' @param b
+#' a scalar weighting the contribution of possibilistic membership in
+#' SPFCM (semi-supervised possibilistic fuzzy c-means) model.
+#' It is set to 1 by default for other semi-supervised models.
+#' 
 estimate_super_T <-
   function(
-    X,
-    V,
+    D,
     superF,
     alpha,
-    function_dist,
-    gammas
+    gammas,
+    b = 1
   ) {
-    D <- function_dist(X, V)^2
     G <- matrix(gammas, nrow = 1)[rep(1, nrow(D)), ]
-    Tp <- (G + D * alpha * superF) / (G + D * (1 + alpha * rowSums(superF)))
+    Tp <- (G + D * alpha * superF) / (G + D * (b + alpha * rowSums(superF)))
     
     return(Tp)
   }

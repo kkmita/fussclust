@@ -2,25 +2,17 @@
 % Please edit documentation in R/utils.R
 \name{estimate_U}
 \alias{estimate_U}
-\title{Estimated U matrix with memberships.}
+\title{Estimated U matrix with memberships in semi-supervised case.}
 \usage{
-estimate_U(X, V, superF, alpha, function_dist)
+estimate_U(D, superF, alpha)
 }
 \arguments{
-\item{X}{a matrix \emph{X} of dimension (N, p) containing predictor variables.}
+\item{D}{Distances matrix of size N x c.}
 
-\item{V}{a prototypes matrix of dimension (c, p)}
+\item{superF}{Binary supervision matrix of size N x c.}
 
-\item{alpha}{the scaling factor, a floating point > 0.}
-
-\item{function_dist}{A function of two arguments: matrices X and V of the same
-number of columns.
-It should return a matrix of (nrow(X) x nrow(V)) of distances
-between each row of X and all rows of V.
-In case of Euclidean distance, the result should not be squared!}
-
-\item{F_}{the supervision  binary matrix of the same dimension as \emph{U}.}
+\item{alpha}{Scaling factor, a floating point > 0 regulating the impact of partial supervision.}
 }
 \description{
-Estimated U matrix with memberships.
+Estimated U matrix with memberships in semi-supervised case.
 }

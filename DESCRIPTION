@@ -1,17 +1,25 @@
 Package: fussclust
-Title: Fuzzy Unsupervised and Semi-Supervised Clustering
+Title: Fuzzy Unsupervised And Semi-Supervised Clustering
 Version: 0.0.0.9000
 Authors@R: 
     person(
         given = "Kamil",
         family = "Kmita",
         email = "kamil.kmita17@gmail.com",
-        role = c("aut", "cre")
+        role = c("aut", "cre", "cph")
     )
-Description: An ultimate package for fuzzy clustering.
+Description: Provides methods for fuzzy unsupervised and
+    semi-supervised clustering, including fuzzy, possibilistic,
+    and hybrid models. The package introduces a generalized
+    estimation framework that enables modular extensions of
+    prototype-based fuzzy clustering algorithms.
 License: MIT + file LICENSE
 Encoding: UTF-8
 Roxygen: list(markdown = TRUE)
 RoxygenNote: 7.3.3
+Depends: R (>= 4.1.0)
 Imports: 
     rdist
+Suggests: 
+    testthat (>= 3.0.0)
+Config/testthat/edition: 3

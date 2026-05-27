@@ -2,7 +2,7 @@
 % Please edit documentation in R/pcm.R
 \name{PCM}
 \alias{PCM}
-\title{Semi-Supervised Fuzzy C-Means model.}
+\title{Possibilistic c-Means model.}
 \usage{
 PCM(
   X,
@@ -16,25 +16,57 @@ PCM(
 )
 }
 \arguments{
-\item{X}{a matrix \emph{X} with predictor variables.}
+\item{X}{Features matrix \emph{X}.}
 
-\item{C}{a number of clusters to find.}
+\item{C}{Number of clusters.}
 
-\item{U}{optionally: a first memberships matrix to initialize the algorithm.
-Used mainly for reproducibility to compare calculations with other packages
-(e.g. in Python).}
+\item{U}{Optionally: a concrete initialization memberships matrix.
+Used mainly for reproducibility.
+Default value \code{NULL} - algorithm uses random initialization in such case.}
 
-\item{function_dist}{A function of two arguments: matrices X and V of the same
+\item{gammas}{Optionally: a vector of cluster-specific gamma hyperparameters.
+Default value: \code{NULL}. In such case, the initialization value depends on
+\code{initFCM} value. If \code{initFCM} is \code{NULL}, then vector filled with ones is used.
+If \code{initFCM} is not \code{NULL}, then Fuzzy c-Means model is fitted, and the algorithm
+implemented in \code{init_gamma} function is used to calculate the cluster-specific
+gamma hyperparameters.}
+
+\item{initFCM}{Default value: \code{NULL}. If \code{gammas} is not \code{NULL}, and \code{initFCM} is not \code{NULL},
+then special algorithm based on creating Fuzzy c-Means model and appropriately
+calculating values of hyperparameters gamma is initiated.}
+
+\item{max_iter}{Maximum number of iterations. Default value: 200.}
+
+\item{conv_criterion}{Convergence criterion value used at the end of each iteration of
+Alternating Optimization algorithm.}
+
+\item{function_dist}{Optionally: a function of two arguments: matrices \emph{X} and \emph{V} of the same
 number of columns.
 It should return a matrix of (nrow(X) x nrow(V)) of distances
-between each row of X and all rows of V.
+between each row of \emph{X} and all rows of \emph{V}.
 In case of Euclidean distance, the result should not be squared!}
-
-\item{alpha}{the scaling factor, a floating point > 0.}
-
-\item{F_}{the supervision  binary matrix of the same dimension as \emph{U}.}
+}
+\value{
+An object of class \code{pcm} containing:
+\describe{
+\item{U}{An \eqn{N \times c} matrix of cluster memberships.}
+\item{V}{A \eqn{c \times p} matrix of cluster prototypes.}
+\item{function_dist}{An object of class \code{function} used to calculate distances.}
+\item{counter}{Integer number of iterations until convergence.}
+\item{V_history}{A list of length \code{counter} with \eqn{c \times p}
+prototypes matrices estimated in each loop of the algorithm.}
+\item{U_history}{A list of length \code{counter} with \eqn{N \times c}
+memberships matrices estimated in each loop of the algorithm.}
+\item{Phi_history}{A list of length \code{counter} with \eqn{N \times c}
+phi weights in each loop of the algorithm.}
+}
 }
 \description{
-If \emph{alpha} and \emph{F_} are not supplied (their default values are \code{NULL}),
-then a regular unsupervised Fuzzy C-Means algorithm is fitted.
+Unsupervised Possibilistic c-Means algorithm.
+}
+\examples{
+X <- matrix(rnorm(99), ncol = 3)
+model_pcm <- PCM(X = X, C = 3)
+print(model_pcm$V)
+
 }

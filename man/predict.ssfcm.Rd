@@ -4,18 +4,27 @@
 \alias{predict.ssfcm}
 \title{Predict method for SSFCM objects}
 \usage{
-\method{predict}{ssfcm}(object, .X, ...)
+\method{predict}{ssfcm}(object, X, ...)
 }
 \arguments{
 \item{object}{An object of class \code{ssfcm}}
 
-\item{...}{Not used}
+\item{X}{New data matrix of size \eqn{N \times p}}
 
-\item{X}{New data matrix}
+\item{...}{Not used}
 }
 \value{
-A data frame with predicted labels
+A matrix of size \eqn{N \times C}, where \eqn{C} is the number of columns
+in \code{object$U} containing predicted memberships.
 }
 \description{
 Predict method for SSFCM objects
+}
+\examples{
+X <- matrix(rnorm(100), ncol = 2)
+superF <- matrix(0, nrow = nrow(X), ncol = ncol(X))
+superF[1:10, 1] <- 1
+superF[11:20, 2] <- 1
+model_ssfcm <- SSFCM(X = X, C = 2, superF = superF, alpha = 1)
+predict(model_ssfcm, matrix(rnorm(2), ncol = 2))
 }
