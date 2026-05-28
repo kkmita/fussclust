@@ -2,58 +2,74 @@
 % Please edit documentation in R/fcm.R
 \name{FCM}
 \alias{FCM}
-\title{Fuzzy C-Means model.}
+\title{Fuzzy C-Means clustering model}
 \usage{
 FCM(
   X,
   C,
   U = NULL,
   max_iter = 200,
-  conv_criterion = 1e-04,
+  conv_criterion = 0.0001,
   function_dist = rdist::cdist
 )
 }
 \arguments{
-\item{X}{Features matrix \emph{X}.}
+\item{X}{A numeric feature matrix.}
 
-\item{C}{Number of clusters.}
+\item{C}{Integer specifying the number of clusters.}
 
-\item{U}{Optionally: a concrete initialization memberships matrix.
-Used mainly for reproducibility.
-Default value \code{NULL} - algorithm uses random initialization in such case.}
+\item{U}{Optional initial membership matrix.
+Primarily intended for reproducibility purposes.
+If \code{NULL} (default), the algorithm uses a random initialization.}
 
-\item{max_iter}{Maximum number of iterations. Default value: 200.}
+\item{max_iter}{Maximum number of iterations.
+Defaults to \code{200}.}
 
-\item{conv_criterion}{Convergence criterion value used at the end of each iteration of
-Alternating Optimization algorithm.}
+\item{conv_criterion}{Convergence threshold used at the end of each
+iteration of the Alternating Optimization algorithm.}
 
-\item{function_dist}{Optionally: a function of two arguments: matrices \emph{X} and \emph{V} of the same
-number of columns.
-It should return a matrix of (nrow(X) x nrow(V)) of distances
-between each row of \emph{X} and all rows of \emph{V}.
-In case of Euclidean distance, the result should not be squared!}
+\item{function_dist}{Optional distance function.
+The function must accept two matrices, \code{X} and \code{V}, with the same
+number of columns, and return a matrix of size
+\verb{nrow(X) x nrow(V)} containing distances between each row of \code{X}
+and each row of \code{V}.
+
+For the Euclidean distance, the returned distances should not be squared.
+Defaults to \code{\link[rdist:rdist]{rdist::cdist()}}.}
 }
 \value{
 An object of class \code{fcm} containing:
 \describe{
-\item{U}{An \eqn{N \times c} matrix of cluster memberships.}
-\item{V}{A \eqn{c \times p} matrix of cluster prototypes.}
-\item{function_dist}{An object of class \code{function} used to calculate distances.}
-\item{counter}{Integer number of iterations until convergence.}
-\item{V_history}{A list of length \code{counter} with \eqn{c \times p}
-prototypes matrices estimated in each loop of the algorithm.}
-\item{U_history}{A list of length \code{counter} with \eqn{N \times c}
-memberships matrices estimated in each loop of the algorithm.}
-\item{Phi_history}{A list of length \code{counter} with \eqn{N \times c}
-phi weights in each loop of the algorithm.}
+\item{U}{An \eqn{N \times C} membership matrix.}
+\item{V}{A \eqn{C \times p} matrix of cluster prototypes.}
+\item{function_dist}{The distance function used by the model.}
+\item{counter}{Number of iterations performed until convergence.}
+\item{V_history}{A list of length \code{counter} containing prototype
+matrices estimated at each iteration.}
+\item{U_history}{A list of length \code{counter} containing membership
+matrices estimated at each iteration.}
+\item{Phi_history}{A list of length \code{counter} containing phi-weight
+matrices estimated at each iteration.}
 }
 }
 \description{
-Unsupervised Fuzzy c-Means algorithm.
+Fits a Fuzzy C-Means (FCM) clustering model using the Alternating
+Optimization algorithm.
 }
 \examples{
 X <- matrix(rnorm(100), ncol = 2)
-model_fcm <- fussclust::FCM(X = X, C = 2)
+
+model_fcm <- fussclust::FCM(
+  X = X,
+  C = 2
+)
+
 print(model_fcm$V)
 
+}
+\references{
+Bezdek, J. C. (1981).
+\emph{Pattern Recognition with Fuzzy Objective Function Algorithms}.
+Springer US.
+https://doi.org/10.1007/978-1-4757-0450-1
 }

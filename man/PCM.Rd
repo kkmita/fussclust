@@ -2,7 +2,7 @@
 % Please edit documentation in R/pcm.R
 \name{PCM}
 \alias{PCM}
-\title{Possibilistic c-Means model.}
+\title{Possibilistic C-Means clustering model}
 \usage{
 PCM(
   X,
@@ -11,62 +11,83 @@ PCM(
   gammas = NULL,
   initFCM = NULL,
   max_iter = 200,
-  conv_criterion = 1e-04,
+  conv_criterion = 0.0001,
   function_dist = rdist::cdist
 )
 }
 \arguments{
-\item{X}{Features matrix \emph{X}.}
+\item{X}{A numeric feature matrix.}
 
-\item{C}{Number of clusters.}
+\item{C}{Integer specifying the number of clusters.}
 
-\item{U}{Optionally: a concrete initialization memberships matrix.
-Used mainly for reproducibility.
-Default value \code{NULL} - algorithm uses random initialization in such case.}
+\item{U}{Optional initial membership matrix.
+Primarily intended for reproducibility purposes.
+If \code{NULL} (default), the algorithm uses a random initialization.}
 
-\item{gammas}{Optionally: a vector of cluster-specific gamma hyperparameters.
-Default value: \code{NULL}. In such case, the initialization value depends on
-\code{initFCM} value. If \code{initFCM} is \code{NULL}, then vector filled with ones is used.
-If \code{initFCM} is not \code{NULL}, then Fuzzy c-Means model is fitted, and the algorithm
-implemented in \code{init_gamma} function is used to calculate the cluster-specific
+\item{gammas}{Optional vector of cluster-specific gamma hyperparameters.
+If \code{NULL} (default), the initialization strategy depends on the value
+of \code{initFCM}.
+
+If \code{initFCM} is \code{NULL}, a vector of ones is used.
+Otherwise, a Fuzzy C-Means model is first fitted, and the
+\code{init_gamma()} function is used to estimate the cluster-specific
 gamma hyperparameters.}
 
-\item{initFCM}{Default value: \code{NULL}. If \code{gammas} is not \code{NULL}, and \code{initFCM} is not \code{NULL},
-then special algorithm based on creating Fuzzy c-Means model and appropriately
-calculating values of hyperparameters gamma is initiated.}
+\item{initFCM}{Optional fitted Fuzzy C-Means model used to initialize
+cluster-specific gamma hyperparameters via weighted averaging.
+If \code{NULL} (default), no preliminary Fuzzy C-Means initialization is used.
+If provided, this argument is effective only when \code{gammas} is \code{NULL}.}
 
-\item{max_iter}{Maximum number of iterations. Default value: 200.}
+\item{max_iter}{Maximum number of iterations.
+Defaults to \code{200}.}
 
-\item{conv_criterion}{Convergence criterion value used at the end of each iteration of
-Alternating Optimization algorithm.}
+\item{conv_criterion}{Convergence threshold used at the end of each
+iteration of the Alternating Optimization algorithm.}
 
-\item{function_dist}{Optionally: a function of two arguments: matrices \emph{X} and \emph{V} of the same
-number of columns.
-It should return a matrix of (nrow(X) x nrow(V)) of distances
-between each row of \emph{X} and all rows of \emph{V}.
-In case of Euclidean distance, the result should not be squared!}
+\item{function_dist}{Optional distance function.
+The function must accept two matrices, \code{X} and \code{V}, with the same
+number of columns, and return a matrix of size
+\verb{nrow(X) x nrow(V)} containing distances between each row of \code{X}
+and each row of \code{V}.
+
+For the Euclidean distance, the returned distances should not be squared.
+Defaults to \code{\link[rdist:rdist]{rdist::cdist()}}.}
 }
 \value{
 An object of class \code{pcm} containing:
 \describe{
-\item{U}{An \eqn{N \times c} matrix of cluster memberships.}
-\item{V}{A \eqn{c \times p} matrix of cluster prototypes.}
-\item{function_dist}{An object of class \code{function} used to calculate distances.}
-\item{counter}{Integer number of iterations until convergence.}
-\item{V_history}{A list of length \code{counter} with \eqn{c \times p}
-prototypes matrices estimated in each loop of the algorithm.}
-\item{U_history}{A list of length \code{counter} with \eqn{N \times c}
-memberships matrices estimated in each loop of the algorithm.}
-\item{Phi_history}{A list of length \code{counter} with \eqn{N \times c}
-phi weights in each loop of the algorithm.}
+\item{U}{An \eqn{N \times C} membership matrix.}
+\item{V}{A \eqn{C \times p} matrix of cluster prototypes.}
+\item{function_dist}{The distance function used by the model.}
+\item{counter}{Number of iterations performed until convergence.}
+\item{gammas}{Vector of cluster-specific gamma hyperparameters.}
+\item{V_history}{A list of length \code{counter} containing prototype
+matrices estimated at each iteration.}
+\item{U_history}{A list of length \code{counter} containing membership
+matrices estimated at each iteration.}
+\item{Phi_history}{A list of length \code{counter} containing phi-weight
+matrices estimated at each iteration.}
 }
 }
 \description{
-Unsupervised Possibilistic c-Means algorithm.
+Fits a Possibilistic C-Means (PCM) clustering model using the Alternating
+Optimization algorithm.
 }
 \examples{
-X <- matrix(rnorm(99), ncol = 3)
-model_pcm <- PCM(X = X, C = 3)
+X <- matrix(rnorm(100), ncol = 2)
+
+model_pcm <- fussclust::PCM(
+  X = X,
+  C = 2,
+  initFCM = TRUE
+)
+
 print(model_pcm$V)
 
+}
+\references{
+Krishnapuram, R., & Keller, J. (1993).
+\emph{A possibilistic approach to clustering}.
+IEEE Transactions on Fuzzy Systems, 1(2), 98–110.
+https://doi.org/10.1109/91.227387
 }

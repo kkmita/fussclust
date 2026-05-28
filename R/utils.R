@@ -2,7 +2,7 @@
 #' (stands for "distances vertically exploded") matrices.
 #'
 #' @param A Matrix of size N x c.
-#' 
+#'
 #' @param vertical Boolean switch.
 #' If `TRUE`, create DVE (vertical explosion).
 #' If `FALSE`, create DHE (horizontal explosion).
@@ -11,7 +11,7 @@
 #'
 dheve <- function(A, vertical) {
   if (vertical == TRUE) {
-    elements <- A[rep(1:nrow(A), each=ncol(A)), ]
+    elements <- A[rep(1:nrow(A), each = ncol(A)), ]
   } else {
     elements <- matrix(c(t(A)))[, rep(1, ncol(A))]
   }
@@ -23,13 +23,13 @@ dheve <- function(A, vertical) {
 #' evidence matrix E.
 #'
 #' @param dhe DHE matrix of size Nc x c.
-#' 
+#'
 #' @param dve DVE matrix of size Nc x c.
 #'
 #' @return Matrix of size Nc x 1.
 #'
 gamma_fcm <- function(dhe, dve) {
-  1 / rowSums(dhe/dve)
+  1 / rowSums(dhe / dve)
 }
 
 
@@ -37,7 +37,7 @@ gamma_fcm <- function(dhe, dve) {
 #' (column vectors) to a block matrix with horizontal blocks (row vectors).
 #'
 #' @param A Matrix of size Nc x 1.
-#' 
+#'
 #' @param c Number of columns in the wanted matrix.
 #' Associated with the number of clusters.
 #'
@@ -93,9 +93,9 @@ estimate_U <-
     alpha
   ) {
     E <- calculate_evidence(D)
-    
+
     U <- (E + alpha * superF) / (1 + alpha * rowSums(superF))
-    
+
     return(U)
   }
 
@@ -103,7 +103,7 @@ estimate_U <-
 #' Estimated T matrix with typicalities in unsupervised case.
 #'
 #' @param D Distances matrix of size N x c.
-#' 
+#'
 #' @param gammas
 #' a c-vector of cluster-specific gamma hyperparameters.
 #'
@@ -114,22 +114,22 @@ estimate_T <-
   ) {
     G <- matrix(gammas, nrow = 1)[rep(1, nrow(D)), ]
     Tp <- G / (G + D)
-    
+
     return(Tp)
   }
 
 
 #' Initialization procedure to calculate values of gamma hyperparameters.
-#' 
+#'
 #' @param .model estimated model of class `fcm`
-#' 
+#'
 #' @param .X features matrix of size N x c
 #'
 init_gamma <- function(.model, .X) {
   # recreate distances
   .D <- .model$function_dist(.X, .model$V)
   out <- colSums(.model$U * .D) / colSums(.model$U)
-  
+
   return(out)
 }
 
@@ -143,15 +143,15 @@ init_gamma <- function(.model, .X) {
 #'
 #' @param alpha
 #' Scaling factor, a floating point > 0 regulating the impact of partial supervision.
-#' 
+#'
 #' @param gammas
 #' a c-vector of cluster-specific gamma hyperparameters.
-#' 
+#'
 #' @param b
 #' a scalar weighting the contribution of possibilistic membership in
 #' SPFCM (semi-supervised possibilistic fuzzy c-means) model.
 #' It is set to 1 by default for other semi-supervised models.
-#' 
+#'
 estimate_super_T <-
   function(
     D,
@@ -162,6 +162,6 @@ estimate_super_T <-
   ) {
     G <- matrix(gammas, nrow = 1)[rep(1, nrow(D)), ]
     Tp <- (G + D * alpha * superF) / (G + D * (b + alpha * rowSums(superF)))
-    
+
     return(Tp)
   }
