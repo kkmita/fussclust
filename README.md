@@ -2,6 +2,8 @@
 # fussclust
 
 <!-- badges: start -->
+
+[![R-CMD-check](https://github.com/kkmita/fussclust/actions/workflows/R-CMD-check.yaml/badge.svg)](https://github.com/kkmita/fussclust/actions/workflows/R-CMD-check.yaml)
 <!-- badges: end -->
 
 The goal of `fussclust` is to provide methods for fuzzy unsupervised and
