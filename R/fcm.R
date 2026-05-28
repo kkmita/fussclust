@@ -26,6 +26,10 @@
 #'
 #' For the Euclidean distance, the returned distances should not be squared.
 #' Defaults to [rdist::cdist()].
+#' 
+#' @param store_history Logical indicating whether optimization
+#' histories should be stored. If `FALSE`, the returned object
+#' will contain `NULL` history fields. Defaults to `TRUE`.
 #'
 #' @return An object of class `fcm` containing:
 #' \describe{
@@ -33,12 +37,15 @@
 #'   \item{V}{A \eqn{C \times p} matrix of cluster prototypes.}
 #'   \item{function_dist}{The distance function used by the model.}
 #'   \item{counter}{Number of iterations performed until convergence.}
-#'   \item{V_history}{A list of length `counter` containing prototype
-#'   matrices estimated at each iteration.}
-#'   \item{U_history}{A list of length `counter` containing membership
-#'   matrices estimated at each iteration.}
-#'   \item{Phi_history}{A list of length `counter` containing phi-weight
-#'   matrices estimated at each iteration.}
+#'   \item{U_history}{If `store_history = TRUE`, a list of length
+#'   `counter` containing membership matrices estimated at each
+#'   iteration; otherwise `NULL`.}
+#'   \item{V_history}{If `store_history = TRUE`, a list of length
+#'   `counter` containing prototype matrices estimated at each
+#'   iteration; otherwise `NULL`.}
+#'   \item{Phi_history}{If `store_history = TRUE`, a list of length
+#'   `counter` containing phi-weight matrices estimated at each
+#'   iteration; otherwise `NULL`.}
 #' }
 #' 
 #' @references 
@@ -64,7 +71,8 @@ FCM <- function(
   U = NULL,
   max_iter = 200,
   conv_criterion = 1e-4,
-  function_dist = rdist::cdist
+  function_dist = rdist::cdist,
+  store_history = FALSE
 ) {
   if (is.null(U)) {
     U <- matrix(stats::runif(nrow(X) * C), ncol = C)
@@ -74,26 +82,31 @@ FCM <- function(
   U <- t(apply(U, 1, function(x) x / sum(x)))
 
   counter <- 0
-  U_history <- list()
-  V_history <- list()
-  Phi_history <- list()
+  
+  if (store_history) {
+    U_history <- list()
+    V_history <- list()
+    Phi_history <- list()
+  } else {
+    U_history <- NULL
+    V_history <- NULL
+    Phi_history <- NULL
+  }
 
   for (iter in 1:max_iter) {
     counter <- counter + 1
     U_previous_iter <- U
 
     Phi <- U_previous_iter^2
-
-    Phi_history[[counter]] <- Phi
-
     V <- estimate_V(Phi, X)
-
-    V_history[[counter]] <- V
-
     D <- function_dist(X, V)^2
     U <- calculate_evidence(D)
-
-    U_history[[counter]] <- U
+    
+    if (store_history) {
+      U_history[[counter]] <- U
+      V_history[[counter]] <- V
+      Phi_history[[counter]] <- Phi
+    }
 
     conv_iter <- base::norm(U - U_previous_iter, type = "F")
 
@@ -107,8 +120,8 @@ FCM <- function(
     V = V,
     function_dist = function_dist,
     counter = counter,
+    U_history = U_history,    
     V_history = V_history,
-    U_history = U_history,
     Phi_history = Phi_history
   )
 

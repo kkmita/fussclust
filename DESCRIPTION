@@ -1,5 +1,5 @@
 Package: fussclust
-Title: Fuzzy Unsupervised And Semi-Supervised Clustering
+Title: Fuzzy Unsupervised and Semi-Supervised Clustering
 Version: 0.0.0.9000
 Authors@R: 
     person(

@@ -10,7 +10,8 @@ FCM(
   U = NULL,
   max_iter = 200,
   conv_criterion = 0.0001,
-  function_dist = rdist::cdist
+  function_dist = rdist::cdist,
+  store_history = FALSE
 )
 }
 \arguments{
@@ -36,6 +37,10 @@ and each row of \code{V}.
 
 For the Euclidean distance, the returned distances should not be squared.
 Defaults to \code{\link[rdist:rdist]{rdist::cdist()}}.}
+
+\item{store_history}{Logical indicating whether optimization
+histories should be stored. If \code{FALSE}, the returned object
+will contain \code{NULL} history fields. Defaults to \code{TRUE}.}
 }
 \value{
 An object of class \code{fcm} containing:
@@ -44,12 +49,15 @@ An object of class \code{fcm} containing:
 \item{V}{A \eqn{C \times p} matrix of cluster prototypes.}
 \item{function_dist}{The distance function used by the model.}
 \item{counter}{Number of iterations performed until convergence.}
-\item{V_history}{A list of length \code{counter} containing prototype
-matrices estimated at each iteration.}
-\item{U_history}{A list of length \code{counter} containing membership
-matrices estimated at each iteration.}
-\item{Phi_history}{A list of length \code{counter} containing phi-weight
-matrices estimated at each iteration.}
+\item{U_history}{If \code{store_history = TRUE}, a list of length
+\code{counter} containing membership matrices estimated at each
+iteration; otherwise \code{NULL}.}
+\item{V_history}{If \code{store_history = TRUE}, a list of length
+\code{counter} containing prototype matrices estimated at each
+iteration; otherwise \code{NULL}.}
+\item{Phi_history}{If \code{store_history = TRUE}, a list of length
+\code{counter} containing phi-weight matrices estimated at each
+iteration; otherwise \code{NULL}.}
 }
 }
 \description{

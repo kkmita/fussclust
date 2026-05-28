@@ -26,3 +26,15 @@ test_that("Correct prediction format in SSFCM", {
     c(3, 2)
   )
 })
+
+test_that("No history stored in SSFCM", {
+  expect_equal(
+    SSFCM(X = X, C = 2, superF = superF, alpha = 1)$U_history,
+    NULL)
+})
+
+test_that("History store in SSFCM", {
+  expect_equal(
+    class(SSFCM(X = X, C = 2, superF = superF, alpha = 1, store_history = TRUE)$U_history),
+    "list")
+})

@@ -26,6 +26,10 @@
 #'
 #' For the Euclidean distance, the returned distances should not be squared.
 #' Defaults to [rdist::cdist()].
+#' 
+#' @param store_history Logical indicating whether optimization
+#' histories should be stored. If `FALSE`, the returned object
+#' will contain `NULL` history fields. Defaults to `TRUE`.
 #'
 #' @param alpha Positive scaling factor regulating the impact of 
 #' partial supervision.
@@ -40,12 +44,15 @@
 #'   \item{function_dist}{The distance function used by the model.}
 #'   \item{counter}{Number of iterations performed until convergence.}
 #'   \item{alpha}{Value of scaling factor.}
-#'   \item{V_history}{A list of length `counter` containing prototype
-#'   matrices estimated at each iteration.}
-#'   \item{T_history}{A list of length `counter` containing typicalities
-#'   matrices estimated at each iteration.}
-#'   \item{Phi_history}{A list of length `counter` containing phi-weight
-#'   matrices estimated at each iteration.}
+#'   \item{U_history}{If `store_history = TRUE`, a list of length
+#'   `counter` containing membership matrices estimated at each
+#'   iteration; otherwise `NULL`.}
+#'   \item{V_history}{If `store_history = TRUE`, a list of length
+#'   `counter` containing prototype matrices estimated at each
+#'   iteration; otherwise `NULL`.}
+#'   \item{Phi_history}{If `store_history = TRUE`, a list of length
+#'   `counter` containing phi-weight matrices estimated at each
+#'   iteration; otherwise `NULL`.}
 #' }
 #'
 #' @references
@@ -80,6 +87,7 @@ SSFCM <- function(
   max_iter = 200,
   conv_criterion = 1e-4,
   function_dist = rdist::cdist,
+  store_history = FALSE,
   alpha = NULL,
   superF = NULL
 ) {
@@ -103,21 +111,23 @@ SSFCM <- function(
   U <- t(apply(U, 1, function(x) x / sum(x)))
 
   counter <- 0
-  U_history <- list()
-  V_history <- list()
-  Phi_history <- list()
+  
+  if (store_history) {
+    U_history <- list()
+    V_history <- list()
+    Phi_history <- list()
+  } else {
+    U_history <- NULL
+    V_history <- NULL
+    Phi_history <- NULL
+  }
 
   for (iter in 1:max_iter) {
     counter <- counter + 1
     U_previous_iter <- U
 
     Phi <- U_previous_iter^2 + (U_previous_iter - superF)^2 * alpha * rowSums(superF)
-
-    Phi_history[[counter]] <- Phi
-
     V <- estimate_V(Phi, X)
-
-    V_history[[counter]] <- V
 
     U <- estimate_U(
       D = function_dist(X, V)^2,
@@ -125,7 +135,11 @@ SSFCM <- function(
       alpha = alpha
     )
 
-    U_history[[counter]] <- U
+    if (store_history) {
+      U_history[[counter]] <- U
+      V_history[[counter]] <- V
+      Phi_history[[counter]] <- Phi
+    }
 
     conv_iter <- base::norm(U - U_previous_iter, type = "F")
 
@@ -140,8 +154,8 @@ SSFCM <- function(
     function_dist = function_dist,
     counter = counter,
     alpha = alpha,
-    V_history = V_history,
     U_history = U_history,
+    V_history = V_history,
     Phi_history = Phi_history
   )
 
@@ -151,28 +165,40 @@ SSFCM <- function(
 }
 
 
-#' Predict method for SSFCM objects
+#' Predict method for `ssfcm` objects
 #'
-#' @param object An object of class \code{ssfcm}
+#' @description
+#' Predicts cluster memberships for new observations using a fitted
+#' Semi-Supervised Fuzzy C-Means model.
 #'
-#' @param X New data matrix of size \eqn{N \times p}
+#' @param object An object of class `ssfcm`.
 #'
-#' @param ... Not used
+#' @param X A numeric matrix of new observations with \eqn{p} columns.
 #'
-#' @method predict ssfcm
+#' @param ... Additional arguments. Currently ignored.
 #'
-#' @export
-#'
-#' @return A matrix of size \eqn{N \times C}, where \eqn{C} is the number of columns
-#' in `object$U` containing predicted memberships.
+#' @return A matrix of size \eqn{N \times C} containing predicted
+#' cluster memberships, where \eqn{C} is the number of clusters.
 #'
 #' @examples
 #' X <- matrix(rnorm(100), ncol = 2)
-#' superF <- matrix(0, nrow = nrow(X), ncol = ncol(X))
+#'
+#' superF <- matrix(0, nrow = nrow(X), ncol = 2)
+#'
 #' superF[1:10, 1] <- 1
 #' superF[11:20, 2] <- 1
-#' model_ssfcm <- SSFCM(X = X, C = 2, superF = superF, alpha = 1)
+#'
+#' model_ssfcm <- SSFCM(
+#'   X = X,
+#'   C = 2,
+#'   superF = superF,
+#'   alpha = 1
+#' )
+#'
 #' predict(model_ssfcm, matrix(rnorm(2), ncol = 2))
+#'
+#' @method predict ssfcm
+#' @export
 predict.ssfcm <- function(object, X, ...) {
   Dpred <- object$function_dist(
     X,

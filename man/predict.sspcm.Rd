@@ -2,30 +2,41 @@
 % Please edit documentation in R/sspcm.R
 \name{predict.sspcm}
 \alias{predict.sspcm}
-\title{Predict method for SSPCM objects}
+\title{Predict method for \code{sspcm} objects}
 \usage{
 \method{predict}{sspcm}(object, X, ...)
 }
 \arguments{
-\item{object}{An object of class \code{sspcm}}
+\item{object}{An object of class \code{sspcm}.}
 
-\item{X}{New data matrix of size \eqn{N \times p}}
+\item{X}{A numeric matrix of new observations with \eqn{p} columns.}
 
-\item{...}{Not used}
+\item{...}{Additional arguments. Currently ignored.}
 }
 \value{
-A matrix of size \eqn{N \times C}, where \eqn{C} is the number of columns
-in \code{object$U} containing predicted memberships.
+A matrix of size \eqn{N \times C} containing predicted
+cluster memberships, where \eqn{C} is the number of clusters.
 }
 \description{
-Predict method for SSPCM objects
+Predicts cluster memberships for new observations using a fitted
+Semi-Supervised Possibilistic C-Means model.
 }
 \examples{
 X <- matrix(rnorm(100), ncol = 2)
-superF <- matrix(0, nrow = nrow(X), ncol = ncol(X))
+
+superF <- matrix(0, nrow = nrow(X), ncol = 2)
+
 superF[1:10, 1] <- 1
 superF[11:20, 2] <- 1
-model_sspcm <- SSPCM(X = X, C = 2, superF = superF, alpha = 1)
+
+model_sspcm <- SSPCM(
+  X = X,
+  C = 2,
+  superF = superF,
+  initFCM = TRUE,
+  alpha = 1
+)
+
 predict(model_sspcm, matrix(rnorm(2), ncol = 2))
 
 }

@@ -2,29 +2,40 @@
 % Please edit documentation in R/ssfcm.R
 \name{predict.ssfcm}
 \alias{predict.ssfcm}
-\title{Predict method for SSFCM objects}
+\title{Predict method for \code{ssfcm} objects}
 \usage{
 \method{predict}{ssfcm}(object, X, ...)
 }
 \arguments{
-\item{object}{An object of class \code{ssfcm}}
+\item{object}{An object of class \code{ssfcm}.}
 
-\item{X}{New data matrix of size \eqn{N \times p}}
+\item{X}{A numeric matrix of new observations with \eqn{p} columns.}
 
-\item{...}{Not used}
+\item{...}{Additional arguments. Currently ignored.}
 }
 \value{
-A matrix of size \eqn{N \times C}, where \eqn{C} is the number of columns
-in \code{object$U} containing predicted memberships.
+A matrix of size \eqn{N \times C} containing predicted
+cluster memberships, where \eqn{C} is the number of clusters.
 }
 \description{
-Predict method for SSFCM objects
+Predicts cluster memberships for new observations using a fitted
+Semi-Supervised Fuzzy C-Means model.
 }
 \examples{
 X <- matrix(rnorm(100), ncol = 2)
-superF <- matrix(0, nrow = nrow(X), ncol = ncol(X))
+
+superF <- matrix(0, nrow = nrow(X), ncol = 2)
+
 superF[1:10, 1] <- 1
 superF[11:20, 2] <- 1
-model_ssfcm <- SSFCM(X = X, C = 2, superF = superF, alpha = 1)
+
+model_ssfcm <- SSFCM(
+  X = X,
+  C = 2,
+  superF = superF,
+  alpha = 1
+)
+
 predict(model_ssfcm, matrix(rnorm(2), ncol = 2))
+
 }
