@@ -26,7 +26,7 @@
 #'
 #' For the Euclidean distance, the returned distances should not be squared.
 #' Defaults to [rdist::cdist()].
-#' 
+#'
 #' @param store_history Logical indicating whether optimization
 #' histories should be stored. If `FALSE`, the returned object
 #' will contain `NULL` history fields. Defaults to `TRUE`.
@@ -47,10 +47,10 @@
 #'   `counter` containing phi-weight matrices estimated at each
 #'   iteration; otherwise `NULL`.}
 #' }
-#' 
-#' @references 
-#' Bezdek, J. C. (1981). 
-#' \emph{Pattern Recognition with Fuzzy Objective Function Algorithms}. 
+#'
+#' @references
+#' Bezdek, J. C. (1981).
+#' \emph{Pattern Recognition with Fuzzy Objective Function Algorithms}.
 #' Springer US.
 #' https://doi.org/10.1007/978-1-4757-0450-1
 #'
@@ -82,7 +82,7 @@ FCM <- function(
   U <- t(apply(U, 1, function(x) x / sum(x)))
 
   counter <- 0
-  
+
   if (store_history) {
     U_history <- list()
     V_history <- list()
@@ -101,7 +101,7 @@ FCM <- function(
     V <- estimate_V(Phi, X)
     D <- function_dist(X, V)^2
     U <- calculate_evidence(D)
-    
+
     if (store_history) {
       U_history[[counter]] <- U
       V_history[[counter]] <- V
@@ -120,7 +120,7 @@ FCM <- function(
     V = V,
     function_dist = function_dist,
     counter = counter,
-    U_history = U_history,    
+    U_history = U_history,
     V_history = V_history,
     Phi_history = Phi_history
   )

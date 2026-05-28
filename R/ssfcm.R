@@ -26,15 +26,15 @@
 #'
 #' For the Euclidean distance, the returned distances should not be squared.
 #' Defaults to [rdist::cdist()].
-#' 
+#'
 #' @param store_history Logical indicating whether optimization
 #' histories should be stored. If `FALSE`, the returned object
 #' will contain `NULL` history fields. Defaults to `TRUE`.
 #'
-#' @param alpha Positive scaling factor regulating the impact of 
+#' @param alpha Positive scaling factor regulating the impact of
 #' partial supervision.
 
-#' @param superF Binary supervision matrix of the same dimensions as `U`, 
+#' @param superF Binary supervision matrix of the same dimensions as `U`,
 #' indicating the available partial supervision information.
 #'
 #' @return An object of class `sspcm` containing:
@@ -56,10 +56,10 @@
 #' }
 #'
 #' @references
-#' Kmita, K., Kaczmarek-Majer, K., & Hryniewicz, O. (2024). 
-#' \emph{Explainable Impact of Partial Supervision in Semi-Supervised 
-#' Fuzzy Clustering}. 
-#' IEEE Transactions on Fuzzy Systems, 1–10. 
+#' Kmita, K., Kaczmarek-Majer, K., & Hryniewicz, O. (2024).
+#' \emph{Explainable Impact of Partial Supervision in Semi-Supervised
+#' Fuzzy Clustering}.
+#' IEEE Transactions on Fuzzy Systems, 1–10.
 #' https://doi.org/10.1109/TFUZZ.2024.3370768
 #'
 #' @examples
@@ -111,7 +111,7 @@ SSFCM <- function(
   U <- t(apply(U, 1, function(x) x / sum(x)))
 
   counter <- 0
-  
+
   if (store_history) {
     U_history <- list()
     V_history <- list()

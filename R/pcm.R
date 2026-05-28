@@ -11,18 +11,18 @@
 #' @param U Optional initial membership matrix.
 #' Primarily intended for reproducibility purposes.
 #' If `NULL` (default), the algorithm uses a random initialization.
-#' 
-#' @param gammas Optional vector of cluster-specific gamma hyperparameters. 
-#' If `NULL` (default), the initialization strategy depends on the value 
-#' of `initFCM`. 
-#' 
-#' If `initFCM` is `NULL`, a vector of ones is used. 
-#' Otherwise, a Fuzzy C-Means model is first fitted, and the 
-#' `init_gamma()` function is used to estimate the cluster-specific 
+#'
+#' @param gammas Optional vector of cluster-specific gamma hyperparameters.
+#' If `NULL` (default), the initialization strategy depends on the value
+#' of `initFCM`.
+#'
+#' If `initFCM` is `NULL`, a vector of ones is used.
+#' Otherwise, a Fuzzy C-Means model is first fitted, and the
+#' `init_gamma()` function is used to estimate the cluster-specific
 #' gamma hyperparameters.
-#' 
-#' @param initFCM Optional fitted Fuzzy C-Means model used to initialize 
-#' cluster-specific gamma hyperparameters via weighted averaging. 
+#'
+#' @param initFCM Optional fitted Fuzzy C-Means model used to initialize
+#' cluster-specific gamma hyperparameters via weighted averaging.
 #' If `NULL` (default), no preliminary Fuzzy C-Means initialization is used.
 #' If provided, this argument is effective only when `gammas` is `NULL`.
 #'
@@ -40,7 +40,7 @@
 #'
 #' For the Euclidean distance, the returned distances should not be squared.
 #' Defaults to [rdist::cdist()].
-#' 
+#'
 #' @param store_history Logical indicating whether optimization
 #' histories should be stored. If `FALSE`, the returned object
 #' will contain `NULL` history fields. Defaults to `TRUE`.
@@ -62,11 +62,11 @@
 #'   `counter` containing phi-weight matrices estimated at each
 #'   iteration; otherwise `NULL`.}
 #' }
-#' 
+#'
 #' @references
-#' Krishnapuram, R., & Keller, J. (1993). 
-#' \emph{A possibilistic approach to clustering}. 
-#' IEEE Transactions on Fuzzy Systems, 1(2), 98–110. 
+#' Krishnapuram, R., & Keller, J. (1993).
+#' \emph{A possibilistic approach to clustering}.
+#' IEEE Transactions on Fuzzy Systems, 1(2), 98–110.
 #' https://doi.org/10.1109/91.227387
 #'
 #' @examples
@@ -117,7 +117,7 @@ PCM <- function(
   }
 
   counter <- 0
-  
+
   if (store_history) {
     U_history <- list()
     V_history <- list()
@@ -154,7 +154,7 @@ PCM <- function(
     V = V,
     function_dist = function_dist,
     counter = counter,
-    gammas = gammas,    
+    gammas = gammas,
     U_history = U_history,
     V_history = V_history,
     Phi_history = Phi_history

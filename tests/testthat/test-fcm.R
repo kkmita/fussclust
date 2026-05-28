@@ -8,11 +8,13 @@ test_that("Prototypes matrix in dummy case in FCM", {
 test_that("No history stored in FCM", {
   expect_equal(
     FCM(X = X, C = 2)$U_history,
-    NULL)
+    NULL
+  )
 })
 
 test_that("History store in FCM", {
   expect_equal(
     class(FCM(X = X, C = 2, store_history = TRUE)$U_history),
-    "list")
+    "list"
+  )
 })

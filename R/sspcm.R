@@ -11,18 +11,18 @@
 #' @param U Optional initial membership matrix.
 #' Primarily intended for reproducibility purposes.
 #' If `NULL` (default), the algorithm uses a random initialization.
-#' 
-#' @param gammas Optional vector of cluster-specific gamma hyperparameters. 
-#' If `NULL` (default), the initialization strategy depends on the value 
-#' of `initFCM`. 
-#' 
-#' If `initFCM` is `NULL`, a vector of ones is used. 
-#' Otherwise, a Fuzzy C-Means model is first fitted, and the 
-#' `init_gamma()` function is used to estimate the cluster-specific 
+#'
+#' @param gammas Optional vector of cluster-specific gamma hyperparameters.
+#' If `NULL` (default), the initialization strategy depends on the value
+#' of `initFCM`.
+#'
+#' If `initFCM` is `NULL`, a vector of ones is used.
+#' Otherwise, a Fuzzy C-Means model is first fitted, and the
+#' `init_gamma()` function is used to estimate the cluster-specific
 #' gamma hyperparameters.
 #'
-#' @param initFCM Optional fitted Fuzzy C-Means model used to initialize 
-#' cluster-specific gamma hyperparameters via weighted averaging. 
+#' @param initFCM Optional fitted Fuzzy C-Means model used to initialize
+#' cluster-specific gamma hyperparameters via weighted averaging.
 #' If `NULL` (default), no preliminary Fuzzy C-Means initialization is used.
 #' If provided, this argument is effective only when `gammas` is `NULL`.
 #'
@@ -40,15 +40,15 @@
 #'
 #' For the Euclidean distance, the returned distances should not be squared.
 #' Defaults to [rdist::cdist()].
-#' 
+#'
 #' @param store_history Logical indicating whether optimization
 #' histories should be stored. If `FALSE`, the returned object
 #' will contain `NULL` history fields. Defaults to `TRUE`.
 #'
-#' @param alpha Positive scaling factor regulating the impact of 
+#' @param alpha Positive scaling factor regulating the impact of
 #' partial supervision.
 
-#' @param superF Binary supervision matrix of the same dimensions as `U`, 
+#' @param superF Binary supervision matrix of the same dimensions as `U`,
 #' indicating the available partial supervision information.
 #'
 #' @return An object of class `sspcm` containing:
@@ -58,7 +58,7 @@
 #'   \item{function_dist}{The distance function used by the model.}
 #'   \item{counter}{Number of iterations performed until convergence.}
 #'   \item{gammas}{Vector of cluster-specific gamma hyperparameters.}
-#'   \item{alpha}{Value of scaling factor.}   
+#'   \item{alpha}{Value of scaling factor.}
 #'   \item{U_history}{If `store_history = TRUE`, a list of length
 #'   `counter` containing membership matrices estimated at each
 #'   iteration; otherwise `NULL`.}
@@ -71,10 +71,10 @@
 #' }
 #'
 #' @references
-#' Kmita, K., Kaczmarek-Majer, K., & Hryniewicz, O. (2024). 
-#' \emph{Explainable Impact of Partial Supervision in Semi-Supervised 
-#' Fuzzy Clustering}. 
-#' IEEE Transactions on Fuzzy Systems, 1–10. 
+#' Kmita, K., Kaczmarek-Majer, K., & Hryniewicz, O. (2024).
+#' \emph{Explainable Impact of Partial Supervision in Semi-Supervised
+#' Fuzzy Clustering}.
+#' IEEE Transactions on Fuzzy Systems, 1–10.
 #' https://doi.org/10.1109/TFUZZ.2024.3370768
 #'
 #' @examples
@@ -145,7 +145,7 @@ SSPCM <- function(
   }
 
   counter <- 0
-  
+
   if (store_history) {
     U_history <- list()
     V_history <- list()
@@ -190,7 +190,7 @@ SSPCM <- function(
     counter = counter,
     gammas = gammas,
     alpha = alpha,
-    U_history = U_history,    
+    U_history = U_history,
     V_history = V_history,
     Phi_history = Phi_history
   )
