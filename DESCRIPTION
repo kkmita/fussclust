@@ -9,11 +9,15 @@ Authors@R:
         role = c("aut", "cre", "cph"),
         comment = c(ORCID = "0000-0001-8829-2420")
     )
-Description: Provides methods for fuzzy unsupervised and
-    semi-supervised clustering, including fuzzy, possibilistic,
-    and hybrid models. The package introduces a generalized
-    estimation framework that enables modular extensions of
-    prototype-based fuzzy clustering algorithms.
+Description: Methods for distance-based fuzzy unsupervised and
+    semi-supervised clustering, including fuzzy and possibilistic models 
+    based on alternating optimization (AO) algorithm.
+    The package introduces a vectorized estimation
+    framework for prototype-based fuzzy clustering algorithms,
+    enabling modular algorithm design and extensibility.
+    It also supports storage and retrieval of intermediate AO
+    optimization results for downstream analysis and processing.
+    For more details see Kmita et al. (2024) <doi:10.1109/TFUZZ.2024.3370768>.
 License: MIT + file LICENSE
 LazyData: true
 Encoding: UTF-8

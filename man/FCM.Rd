@@ -9,7 +9,7 @@ FCM(
   C,
   U = NULL,
   max_iter = 200,
-  conv_criterion = 0.0001,
+  conv_criterion = 1e-04,
   function_dist = rdist::cdist,
   store_history = FALSE
 )
