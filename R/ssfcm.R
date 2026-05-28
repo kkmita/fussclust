@@ -1,7 +1,7 @@
 #' Semi-Supervised Fuzzy C-Means clustering model
 #'
 #' @description
-#' Fits a Semi-Supervised Fuzzy C-Means (SSPCM) clustering model using the Alternating
+#' Fits a Semi-Supervised Fuzzy C-Means (SSFCM) clustering model using the Alternating
 #' Optimization algorithm.
 #'
 #' @param X A numeric feature matrix.
@@ -39,7 +39,7 @@
 #'
 #' @return An object of class `sspcm` containing:
 #' \describe{
-#'   \item{U}{An \eqn{N \times C} typicalities matrix.}
+#'   \item{U}{An \eqn{N \times C} memberships matrix.}
 #'   \item{V}{A \eqn{C \times p} matrix of cluster prototypes.}
 #'   \item{function_dist}{The distance function used by the model.}
 #'   \item{counter}{Number of iterations performed until convergence.}
