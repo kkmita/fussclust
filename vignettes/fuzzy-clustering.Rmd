@@ -1,6 +1,8 @@
 ---
-title: "Fuzzy clustering"
-output: rmarkdown::html_vignette
+title: "fuzzy-clustering"
+output:
+  rmarkdown::html_vignette:
+    number_sections: true
 vignette: >
   %\VignetteIndexEntry{fuzzy-clustering}
   %\VignetteEngine{knitr::rmarkdown}
@@ -17,3 +19,249 @@ knitr::opts_chunk$set(
 ```{r setup}
 library(fussclust)
 ```
+
+
+# Description
+
+The `fussclust` package provides methods for distance-based fuzzy clustering:
+both unsupervised and semi-supervised.
+The core need for the package was to provide semi-supervised models in \texttt{R},
+as there lacked a proper implementation of these, but in fact - 
+both unsupervised and semi-supervised fuzzy clustering follow the same problem
+formulation and solution.
+Hence, `fussclust` implements a common estimation platform for the unified class
+of *fuzzy clustering* (unsupervised and semi-supervised).
+
+With the current release, `fussclust` enables four classical models:
+
+* (unsupervised) Fuzzy c-Means,
+* Semi-Supervised Fuzzy c-Means,
+* Possibilistic c-Means,
+* Semi-Supervised Possibilistic c-Means.
+
+The typical workflow is:
+
+1. prepare your *features matrix* `X` in a form of a numerical matrix,
+2. if running semi-supervised models, prepare partial supervision in a form
+of a binary matrix `superF` (see details in Section 4.1),
+3. fit the appropriate selected model,
+4. check the outputs: estimated memberships `U`, or estimated prototypes `V`.
+
+# Methodology
+
+Fuzzy clustering covered in `fussclust` is distance-based.
+The soft memberships of $N$ objects to $c$ clusters are estimated based on
+an assumption that similarity can be approximated by distances - objects that
+are close in a given metric space are considered similar.
+
+The optimization problem is formulated as
+
+$$\min \: Q(U,V; X)$$
+
+where $Q$ is an objective function, $U$ is the memberships matrix, 
+$V$ are the cluster prototypes, and $X$ is a features matrix.
+
+The problem does not have a closed solution, and therefore, the approximate
+solution is used - the so-called Alternating Optimization algorith.
+It relies on estimating separately optimal memberships $\hat{U}$ and optimal prototypes
+$\hat{V}$ by considering partial functions $Q_U(V)$ and $Q_V(U)$, correspondingly.
+For details, see [Kmita et al. (2024)](https://doi.org/10.1109/TFUZZ.2024.3370768).
+
+The AO algorithm can be summarized as:
+
+1. initiate algorithm with a proper initialization memberships $\hat{U}^{(0)}.
+2. set loop counter $l = 1$.
+3. estimate prototypes $\tilde{V}^{(l)} using the function $\hat{V}$,
+4. estimate memberships $\tilde{U}^{(l)} using the function $\hat{U}$,
+5. check convergence - if difference between $\tilde{U}^{(l)}$
+and $\tilde{U}^{(l-1)}$ is less than a threshold, stop the algorithm.
+Otherwise, go back to point 2, and increase the loop counter by $1$.
+
+# Unsupervised models
+
+We will provide walt-through examples based on the well-known `iris` dataset.
+We will use two of the available features -- sepal length and sepal width --
+in our examples.
+
+## Fitting the model
+
+Let us prepare the matrix.
+
+```{r}
+X <- iris[, c("Sepal.Length", "Sepal.Width")] |> as.matrix()
+
+cat(paste0("Class of `iris` is ", class(iris), " and class of `X` is ", paste0(class(X), collapse = " & ")))
+```
+
+In case of `iris` dataset, we know there are three classes -- each class being
+a different species of irises --, so we will decide to fit `C = 3` clusters.
+Nevertheless, the user can choose any $C \leq 2$.
+
+We fit Fuzzy c-Means model (`fussclust::FCM`) and Possibilistic c-Means model
+(`fussclust::PCM`).
+
+```{r}
+model_fcm <- fussclust::FCM(X = X, C = 2)
+model_pcm <- fussclust::PCM(X = X, C = 2)
+```
+
+and investigate the estimated prototypes from `model_fcm`, and estimated
+memberships from `model_pcm` for ten objects.
+
+```{r}
+model_fcm$V
+```
+
+```{r}
+model_pcm$U[1:10,]
+```
+
+# Semi-Supervised models
+
+## Encoding partial supervision
+
+As stated in Section 1 ''Description'', `fussclust` requires to encode partial
+supervision in form of a binary matrix `superF`.
+
+The assumption undertaken in `fussclust` is that the number of clusters $C$
+is set to be the number of unique classes.
+
+Typically, the class belonging information (partial supervision) is stored
+in a vector called the response variable.
+This is the case with iris as well:
+
+```{r}
+iris[1:3, ]
+```
+The information is stored in the `Species` column, with all unique species being:
+
+```{r}
+unique(iris$Species)
+```
+
+To encode such supervision, appropriate data processing is needed.
+First, an order of the classes must be arbitrarily set by the user of the model.
+Let $\mathcal{Y}$ be a $3$-tuple, introducing the order of species:
+
+$$\mathcal{Y} = (y^1 = \texttt{setosa}, y^2 = \texttt{versicolor}, y^3 = \texttt{virginica})$$.
+
+The `superF` is constructed in such a way.
+Let $F = [f_{jk}]$ be the binary supervision matrix (mathematical symbol corresponding to `superF`),
+where $j=1,\ldost,N$ indexes observations, and $k=1,\ldots,c$ indexes clusters.
+
+* it has `nrow = nrow(X)`,
+* it has $C$ columns,
+* each $k$th column encodes information abouth $k$th class
+(the corresponding $k$th element $y^k$ of $\mathcal{Y}$),
+* $f_{jk} = 1$ only when the $j$th observation is assumed to belong to the $k$th class.
+
+In case of the considered example, this can be implemented as follows.
+
+```{r}
+superF <- matrix(0, nrow = nrow(iris), ncol = 3)
+superF[iris$Species == "setosa", 1] <- 1
+superF[iris$Species == "versicolor", 2] <- 1
+superF[iris$Species == "virginica", 3] <- 1
+```
+
+## Fitting the model
+
+When fitting the model, the user must obligatory provide the value of 
+the scaling factor $\alpha$ (`alpha`) regulating the impact of partial supervision.
+
+This is a delicate matter and there can be no unequivocal guidance on a fit-for-all
+value. For more details, see the discussion in 
+[Kmita et al. (2024)](https://doi.org/10.1109/TFUZZ.2024.3370768).
+
+For our example, we will choose $\alpha = 1$.
+
+Semi-Supervised Fuzzy c-Means model:
+
+```{r}
+model_ssfcm <- fussclust::SSFCM(X = X, C = 3, alpha = 1, superF = superF)
+```
+
+Semi-Supervised Possibilistic c-Means model:
+
+```{r}
+model_sspcm <- fussclust::SSPCM(X = X, C = 3, alpha = 1, superF = superF)
+```
+
+Compare the estimated prototypes.
+
+```{r}
+model_ssfcm$V
+```
+
+```{r}
+model_sspcm$V
+```
+
+
+# Details
+
+## $\Gamma$ in possibilistic approach
+
+The vector of cluster-specific hyperparameters $\Gamma = (\gamma_1, \ldots, \gamma_c)$
+is specific to the possibilistic approach.
+
+This is an optional argument in both `fussclust::PCM` and `fussclust:SSPCM`.
+If user does not provide one, by default a unit vector $\Gamma = (1, \ldots, 1)$ is used.
+
+However, the user may also choose to apply the initialization strategy described 
+by [Krishnapuram and Keller (1993)](https://doi.org/10.1109/91.227387), which relies
+on calculating:
+
+$$\gamma_k \sim \frac{\sum_{j=1}^N u^2_{jk} d^2_{jk}}{\sum_{j=1}^N u^2_{jk}}$$
+
+where the values in the formula are obtained by the initial run of Fuzzy c-Means.
+
+This approach can be applied in `fussclust` by setting the argument `initFCM = TRUE`.
+
+```{r, eval = FALSE}
+model_pcm_init <- fussclust::PCM(X = X, C = 2, initFCM = TRUE)
+```
+
+## Retrieving intermediate results
+
+The user may be interested not only in the final estimated memberships and prototypes
+(that can be retrieved by `model$U` or `model$V`),
+but also in the interim results.
+Recall that the AO algorithm is iterative in its nature.
+
+The history of three matrices can be investigated:
+
+* Estimated memberships `\hat{U}^{(l)}`, accessed by `model$U_history`,
+* Estimated prototypes `\hat{U}^{(l)}`, accessed by `model$V_history`,
+* weights `\hat{\Phi}^{(l)}`, accessed by `model$Phi_history`.
+
+By default, the values of these lists are set to `NULL`.
+
+```{r}
+model_fcm$U_history
+```
+
+To enable storing such results, the argument `story_history = TRUE` must be set accordingly.
+
+```{r}
+model_fcm_history <- fussclust::FCM(X = X, C = 2, store_history = TRUE)
+
+cat(paste0(
+  "Class of `model_fcm_history$U_history` is ", class(model_fcm_history$U_history),
+  " and the length of the object is ", length(model_fcm_history$U_history),
+  " since there were ", model_fcm_history$counter, " loops executed.",
+  collapse = " "))
+```
+
+
+
+
+
+
+
+
+
+
+
+
+
