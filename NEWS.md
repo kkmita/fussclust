@@ -1,3 +1,3 @@
-# fussclust (development version)
+# fussclust 0.1.0
 
 * Initial CRAN submission.
