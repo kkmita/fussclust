@@ -2,3 +2,5 @@
 ^fussclust\.Rproj$
 ^README\.Rmd$
 ^LICENSE\.md$
+^cran-comments\.md$
+^\.github$

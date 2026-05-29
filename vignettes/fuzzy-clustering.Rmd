@@ -1,0 +1,344 @@
+---
+title: "fuzzy-clustering"
+output:
+  rmarkdown::html_vignette:
+    number_sections: true
+vignette: >
+  %\VignetteIndexEntry{fuzzy-clustering}
+  %\VignetteEngine{knitr::rmarkdown}
+  %\VignetteEncoding{UTF-8}
+---
+
+```{r, include = FALSE}
+knitr::opts_chunk$set(
+  collapse = TRUE,
+  comment = "#>"
+)
+```
+
+```{r setup}
+library(fussclust)
+```
+
+# Introduction
+
+The `fussclust` package provides methods for distance-based fuzzy clustering,
+including both unsupervised and semi-supervised approaches.
+
+The original motivation for developing the package was the lack of implementation of semi-supervised fuzzy clustering methods in `R`. However,
+both unsupervised and semi-supervised fuzzy clustering share a common
+optimization framework and estimation procedure. Consequently, `fussclust`
+implements a unified estimation framework for fuzzy clustering models: both unsupervised and semi-supervised.
+
+The current release of `fussclust` includes four classical models:
+
+* Fuzzy c-Means (FCM),
+* Semi-Supervised Fuzzy c-Means (SSFCM),
+* Possibilistic c-Means (PCM),
+* Semi-Supervised Possibilistic c-Means (SSPCM).
+
+A typical workflow consists of the following steps:
+
+1. Prepare a numerical feature matrix `X`.
+2. For semi-supervised models, prepare a binary supervision matrix `superF`
+   (see Section 4.1).
+3. Fit the selected clustering model.
+4. Inspect the estimated memberships `U` and prototypes `V`.
+
+# Methodology
+
+The fuzzy clustering methods implemented in `fussclust` are distance-based.
+Membership values for $N$ observations and $C$ clusters are estimated under the
+assumption that similarity can be represented by distances in a metric space:
+objects located closer to each other are considered more similar.
+
+The optimization problem is formulated as
+
+$$
+\min Q(U, V; X)
+$$
+
+where:
+
+* $Q$ denotes the objective function,
+* $U$ is the membership matrix,
+* $V$ contains the cluster prototypes,
+* $X$ is the feature matrix.
+
+The optimization problem does not admit a closed-form solution. Therefore,
+an iterative approximation procedure known as the Alternating Optimization (AO)
+algorithm is used.
+
+The AO procedure minimizes the corresponding partial objective functions,
+yielding the matrix-valued update functions $\hat{U}$ for estimating
+memberships and $\hat{V}$ for estimating cluster prototypes.
+
+At each iteration, the algorithm alternates between computing the estimated
+membership matrix $\tilde{U}$ using the update function $\hat{U}$ and
+computing the estimated prototype matrix $\tilde{V}$ using the update
+function $\hat{V}$.
+
+For additional methodological details, see
+[Kmita et al. (2024)](https://doi.org/10.1109/TFUZZ.2024.3370768).
+
+The AO algorithm can be summarized as follows:
+
+1. Initialize the algorithm with an initial membership matrix
+   $U^{(0)}$.
+2. Set the iteration counter $l = 1$.
+3. Estimate prototypes $\tilde{V}^{(l)}$ using the formula for optimal
+   prototypes $\hat{V}$ and current values of memberships.
+4. Estimate memberships $\tilde{U}^{(l)}$ using the formula for optimal
+   memberships $\hat{U}$ and current values of prototypes.
+5. Check the convergence criterion. If the difference between
+   $\tilde{U}^{(l)}$ and $\tilde{U}^{(l-1)}$ is smaller than a predefined
+   threshold, stop the algorithm. Otherwise, increase $l$ by one and repeat
+   Steps 3--5.
+
+# Unsupervised models
+
+The following examples use the well-known `iris` 
+dataset [(R.A. Fisher, 1936)](https://doi.org/10.24432/C56C76). 
+We consider two features: sepal length and sepal width.
+
+## Preparing the data
+
+`fussclust` requires the input to be of class `matrix`.
+
+```{r}
+X <- iris[, c("Sepal.Length", "Sepal.Width")] |> as.matrix()
+
+cat(
+  paste0(
+    "Class of `iris`: ", class(iris),
+    "; class of `X`: ",
+    paste(class(X), collapse = " & ")
+  )
+)
+```
+
+The `iris` dataset contains three species of iris flowers. Therefore,
+we set the number of clusters to `C = 3`.
+In practice, however, the user may specify any number of clusters such that
+$C > 1$.
+
+```{r}
+model_fcm <- fussclust::FCM(X = X, C = 3)
+model_pcm <- fussclust::PCM(X = X, C = 3)
+```
+
+The estimated cluster prototypes obtained from the FCM model are:
+
+```{r}
+model_fcm$V
+```
+
+The estimated memberships for the first ten observations obtained from the PCM
+model are:
+
+```{r}
+model_pcm$U[1:10, ]
+```
+
+# Semi-supervised models
+
+## Encoding partial supervision
+
+As described in Section 1, semi-supervised models in `fussclust` require
+partial supervision encoded as a binary matrix `superF`.
+
+The package assumes that the number of clusters $C$ equals the number of
+distinct classes represented in the supervision information.
+
+In many applications, class labels are stored in a response variable.
+This is also the case for the `iris` dataset:
+
+```{r}
+iris[1:3, ]
+```
+
+The class labels are stored in the `Species` column:
+
+```{r}
+unique(iris$Species)
+```
+
+To construct the supervision matrix, the user must first define the arbitrary ordering
+of the classes. Let
+
+$$
+\mathcal{Y} =
+(y^1 = \texttt{setosa},
+y^2 = \texttt{versicolor},
+y^3 = \texttt{virginica})
+$$
+
+denote the ordered set of class labels.
+
+The supervision matrix `superF` is defined as follows.
+Let $F = [f_{jk}]$ denote the binary supervision matrix, where:
+
+* $j = 1, \ldots, N$ indexes observations,
+* $k = 1, \ldots, C$ indexes clusters.
+
+The matrix satisfies the following properties:
+
+* it has `nrow(X)` rows,
+* it has $C$ columns,
+* the $k$-th column corresponds to the $k$-th class in $\mathcal{Y}$,
+* $f_{jk} = 1$ if the $j$-th observation is assumed to belong to the
+  $k$-th class, and $0$ otherwise.
+
+The matrix can be constructed as follows:
+
+```{r}
+superF <- matrix(0, nrow = nrow(iris), ncol = 3)
+
+superF[iris$Species == "setosa", 1] <- 1
+superF[iris$Species == "versicolor", 2] <- 1
+superF[iris$Species == "virginica", 3] <- 1
+```
+
+## Fitting the models
+
+When fitting a semi-supervised model, the user must provide the scaling
+parameter $\alpha$ (`alpha`), which regulates the impact of partial supervision.
+
+There is no universally optimal choice of $\alpha$, as the appropriate value
+depends on the dataset and application. For further discussion, see
+[Kmita et al. (2024)](https://doi.org/10.1109/TFUZZ.2024.3370768).
+
+For this example, we set $\alpha = 1$.
+
+Semi-Supervised Fuzzy c-Means:
+
+```{r}
+model_ssfcm <- fussclust::SSFCM(
+  X = X,
+  C = 3,
+  alpha = 1,
+  superF = superF
+)
+```
+
+Semi-Supervised Possibilistic c-Means:
+
+```{r}
+model_sspcm <- fussclust::SSPCM(
+  X = X,
+  C = 3,
+  alpha = 1,
+  superF = superF
+)
+```
+
+The estimated prototypes are:
+
+```{r}
+model_ssfcm$V
+```
+
+```{r}
+model_sspcm$V
+```
+
+# Additional details
+
+## The $\Gamma$ parameter in possibilistic models
+
+The vector of cluster-specific hyperparameters
+
+$$
+\Gamma = (\gamma_1, \ldots, \gamma_C)
+$$
+
+is specific to possibilistic clustering methods.
+
+This is an optional argument in both `fussclust::PCM()` and
+`fussclust::SSPCM()`. If not provided, the default value is a unit vector:
+
+$$
+\Gamma = (1, \ldots, 1)
+$$
+
+Alternatively, the user may apply the initialization strategy proposed by
+[Krishnapuram and Keller (1993)](https://doi.org/10.1109/91.227387),
+which computes
+
+$$
+\gamma_k =
+\frac{
+\sum_{j=1}^N u_{jk}^2 d_{jk}^2
+}{
+\sum_{j=1}^N u_{jk}^2
+}
+$$
+
+using values obtained from an initial FCM fit.
+
+This strategy can be enabled by setting `initFCM = TRUE`.
+
+```{r, eval = FALSE}
+model_pcm_init <- fussclust::PCM(
+  X = X,
+  C = 3,
+  initFCM = TRUE
+)
+```
+
+The user may also choose to specify the values of $\Gamma$ manually, for example:
+
+```{r, eval = FALSE}
+model_pcm_custom_gammas <- fussclust::PCM(
+  X = X,
+  C = 3,
+  gammas = c(1, 2, 3)
+)
+```
+
+## Retrieving intermediate results
+
+In addition to the final estimated memberships and prototypes
+(accessible via `model$U` and `model$V`), users may inspect intermediate
+results produced during the AO optimization procedure.
+
+The following histories can be stored:
+
+* membership matrices, accessible via `model$U_history`,
+* prototype matrices, accessible via `model$V_history`,
+* weight matrices, accessible via `model$Phi_history`.
+
+By default, these objects are set to `NULL`.
+
+```{r}
+model_fcm$U_history
+```
+
+To store the optimization history, set `store_history = TRUE`.
+
+```{r}
+model_fcm_history <- fussclust::FCM(
+  X = X,
+  C = 3,
+  store_history = TRUE
+)
+
+cat(
+  paste0(
+    "Class of `model_fcm_history$U_history`: ",
+    class(model_fcm_history$U_history),
+    "; length: ",
+    length(model_fcm_history$U_history),
+    "; number of AO iterations: ",
+    model_fcm_history$counter
+  )
+)
+```
+
+To retrieve a specific intermediate result, for example the prototype matrix
+$\hat{V}^{(3)}$ obtained at the third AO iteration, index the corresponding
+history object directly:
+
+```{r}
+model_fcm_history$V_history[[3]]
+```

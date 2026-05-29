@@ -1,84 +1,131 @@
-#' Fuzzy C-Means model.
+#' Fuzzy C-Means clustering model
 #'
 #' @description
-#' Unsupervised Fuzzy c-Means algorithm.
-#' 
-#' @param X
-#' a matrix *X* with predictor variables.
+#' Fits a Fuzzy C-Means (FCM) clustering model using the Alternating
+#' Optimization algorithm.
 #'
-#' @param C
-#' a number of clusters to find.
+#' @param X A numeric feature matrix.
 #'
-#' @param U
-#' optionally: a first memberships matrix to initialize the algorithm.
-#' Used mainly for reproducibility to compare calculations with other packages
-#' (e.g. in Python).
+#' @param C Integer specifying the number of clusters.
 #'
-#' @param function_dist
-#' A function of two arguments: matrices X and V of the same
-#' number of columns.
-#' It should return a matrix of (nrow(X) x nrow(V)) of distances
-#' between each row of X and all rows of V.
-#' In case of Euclidean distance, the result should not be squared!
+#' @param U Optional initial membership matrix.
+#' Primarily intended for reproducibility purposes.
+#' If `NULL` (default), the algorithm uses a random initialization.
+#'
+#' @param max_iter Maximum number of iterations.
+#' Defaults to `200`.
+#'
+#' @param conv_criterion Convergence threshold used at the end of each
+#' iteration of the Alternating Optimization algorithm.
+#'
+#' @param function_dist Optional distance function.
+#' The function must accept two matrices, `X` and `V`, with the same
+#' number of columns, and return a matrix of size
+#' `nrow(X) x nrow(V)` containing distances between each row of `X`
+#' and each row of `V`.
+#'
+#' For the Euclidean distance, the returned distances should not be squared.
+#' Defaults to [rdist::cdist()].
+#'
+#' @param store_history Logical indicating whether optimization
+#' histories should be stored. If `FALSE`, the returned object
+#' will contain `NULL` history fields. Defaults to `TRUE`.
+#'
+#' @return An object of class `fcm` containing:
+#' \describe{
+#'   \item{U}{An \eqn{N \times C} membership matrix.}
+#'   \item{V}{A \eqn{C \times p} matrix of cluster prototypes.}
+#'   \item{function_dist}{The distance function used by the model.}
+#'   \item{counter}{Number of iterations performed until convergence.}
+#'   \item{U_history}{If `store_history = TRUE`, a list of length
+#'   `counter` containing membership matrices estimated at each
+#'   iteration; otherwise `NULL`.}
+#'   \item{V_history}{If `store_history = TRUE`, a list of length
+#'   `counter` containing prototype matrices estimated at each
+#'   iteration; otherwise `NULL`.}
+#'   \item{Phi_history}{If `store_history = TRUE`, a list of length
+#'   `counter` containing phi-weight matrices estimated at each
+#'   iteration; otherwise `NULL`.}
+#' }
+#'
+#' @references
+#' Bezdek, J. C. (1981).
+#' \emph{Pattern Recognition with Fuzzy Objective Function Algorithms}.
+#' Springer US.
+#' https://doi.org/10.1007/978-1-4757-0450-1
+#'
+#' @examples
+#' X <- matrix(rnorm(100), ncol = 2)
+#'
+#' model_fcm <- fussclust::FCM(
+#'   X = X,
+#'   C = 2
+#' )
+#'
+#' print(model_fcm$V)
 #'
 #' @export
-#'
 FCM <- function(
-    X,
-    C,
-    U = NULL,
-    max_iter = 200,
-    conv_criterion = 1e-4,
-    function_dist = rdist::cdist
+  X,
+  C,
+  U = NULL,
+  max_iter = 200,
+  conv_criterion = 1e-4,
+  function_dist = rdist::cdist,
+  store_history = FALSE
 ) {
-  
   if (is.null(U)) {
-    U <- matrix(stats::runif(nrow(X)*C), ncol=C)
+    U <- matrix(stats::runif(nrow(X) * C), ncol = C)
   }
-  
+
   # Rows of U should sum up to 1
   U <- t(apply(U, 1, function(x) x / sum(x)))
-  
-  counter = 0
-  U_history <- list()
-  V_history <- list()
-  Phi_history <- list()
-  
+
+  counter <- 0
+
+  if (store_history) {
+    U_history <- list()
+    V_history <- list()
+    Phi_history <- list()
+  } else {
+    U_history <- NULL
+    V_history <- NULL
+    Phi_history <- NULL
+  }
+
   for (iter in 1:max_iter) {
     counter <- counter + 1
     U_previous_iter <- U
-    
+
     Phi <- U_previous_iter^2
-    
-    Phi_history[[counter]] <- Phi
-    
     V <- estimate_V(Phi, X)
-    
-    V_history[[counter]] <- V
-    
     D <- function_dist(X, V)^2
     U <- calculate_evidence(D)
-    
-    U_history[[counter]] <- U
-    
-    conv_iter <- base::norm(U - U_previous_iter, type="F")
-    
+
+    if (store_history) {
+      U_history[[counter]] <- U
+      V_history[[counter]] <- V
+      Phi_history[[counter]] <- Phi
+    }
+
+    conv_iter <- base::norm(U - U_previous_iter, type = "F")
+
     if (conv_iter < conv_criterion) {
       break
     }
   }
-  
+
   z <- list(
     U = U,
     V = V,
     function_dist = function_dist,
     counter = counter,
-    V_history = V_history,
     U_history = U_history,
+    V_history = V_history,
     Phi_history = Phi_history
   )
-  
+
   class(z) <- "fcm"
-  
+
   return(z)
 }

@@ -2,7 +2,7 @@
 % Please edit documentation in R/fcm.R
 \name{FCM}
 \alias{FCM}
-\title{Fuzzy C-Means model.}
+\title{Fuzzy C-Means clustering model}
 \usage{
 FCM(
   X,
@@ -10,24 +10,74 @@ FCM(
   U = NULL,
   max_iter = 200,
   conv_criterion = 1e-04,
-  function_dist = rdist::cdist
+  function_dist = rdist::cdist,
+  store_history = FALSE
 )
 }
 \arguments{
-\item{X}{a matrix \emph{X} with predictor variables.}
+\item{X}{A numeric feature matrix.}
 
-\item{C}{a number of clusters to find.}
+\item{C}{Integer specifying the number of clusters.}
 
-\item{U}{optionally: a first memberships matrix to initialize the algorithm.
-Used mainly for reproducibility to compare calculations with other packages
-(e.g. in Python).}
+\item{U}{Optional initial membership matrix.
+Primarily intended for reproducibility purposes.
+If \code{NULL} (default), the algorithm uses a random initialization.}
 
-\item{function_dist}{A function of two arguments: matrices X and V of the same
-number of columns.
-It should return a matrix of (nrow(X) x nrow(V)) of distances
-between each row of X and all rows of V.
-In case of Euclidean distance, the result should not be squared!}
+\item{max_iter}{Maximum number of iterations.
+Defaults to \code{200}.}
+
+\item{conv_criterion}{Convergence threshold used at the end of each
+iteration of the Alternating Optimization algorithm.}
+
+\item{function_dist}{Optional distance function.
+The function must accept two matrices, \code{X} and \code{V}, with the same
+number of columns, and return a matrix of size
+\verb{nrow(X) x nrow(V)} containing distances between each row of \code{X}
+and each row of \code{V}.
+
+For the Euclidean distance, the returned distances should not be squared.
+Defaults to \code{\link[rdist:rdist]{rdist::cdist()}}.}
+
+\item{store_history}{Logical indicating whether optimization
+histories should be stored. If \code{FALSE}, the returned object
+will contain \code{NULL} history fields. Defaults to \code{TRUE}.}
+}
+\value{
+An object of class \code{fcm} containing:
+\describe{
+\item{U}{An \eqn{N \times C} membership matrix.}
+\item{V}{A \eqn{C \times p} matrix of cluster prototypes.}
+\item{function_dist}{The distance function used by the model.}
+\item{counter}{Number of iterations performed until convergence.}
+\item{U_history}{If \code{store_history = TRUE}, a list of length
+\code{counter} containing membership matrices estimated at each
+iteration; otherwise \code{NULL}.}
+\item{V_history}{If \code{store_history = TRUE}, a list of length
+\code{counter} containing prototype matrices estimated at each
+iteration; otherwise \code{NULL}.}
+\item{Phi_history}{If \code{store_history = TRUE}, a list of length
+\code{counter} containing phi-weight matrices estimated at each
+iteration; otherwise \code{NULL}.}
+}
 }
 \description{
-Unsupervised Fuzzy c-Means algorithm.
+Fits a Fuzzy C-Means (FCM) clustering model using the Alternating
+Optimization algorithm.
+}
+\examples{
+X <- matrix(rnorm(100), ncol = 2)
+
+model_fcm <- fussclust::FCM(
+  X = X,
+  C = 2
+)
+
+print(model_fcm$V)
+
+}
+\references{
+Bezdek, J. C. (1981).
+\emph{Pattern Recognition with Fuzzy Objective Function Algorithms}.
+Springer US.
+https://doi.org/10.1007/978-1-4757-0450-1
 }

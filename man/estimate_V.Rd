@@ -2,7 +2,7 @@
 % Please edit documentation in R/utils.R
 \name{estimate_V}
 \alias{estimate_V}
-\title{Equation to calculate clusters' prototypes matrix $\hat{V}$.}
+\title{Equation to calculate clusters' prototypes matrix \eqn{\hat{V}}.}
 \usage{
 estimate_V(Phi, X)
 }
@@ -15,5 +15,5 @@ estimate_V(Phi, X)
 Clusters' prototypes matrix of size c x p.
 }
 \description{
-Equation to calculate clusters' prototypes matrix $\hat{V}$.
+Equation to calculate clusters' prototypes matrix \eqn{\hat{V}}.
 }

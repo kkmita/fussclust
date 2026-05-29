@@ -2,7 +2,7 @@
 % Please edit documentation in R/pcm.R
 \name{PCM}
 \alias{PCM}
-\title{Semi-Supervised Fuzzy C-Means model.}
+\title{Possibilistic C-Means clustering model}
 \usage{
 PCM(
   X,
@@ -12,29 +12,90 @@ PCM(
   initFCM = NULL,
   max_iter = 200,
   conv_criterion = 1e-04,
-  function_dist = rdist::cdist
+  function_dist = rdist::cdist,
+  store_history = FALSE
 )
 }
 \arguments{
-\item{X}{a matrix \emph{X} with predictor variables.}
+\item{X}{A numeric feature matrix.}
 
-\item{C}{a number of clusters to find.}
+\item{C}{Integer specifying the number of clusters.}
 
-\item{U}{optionally: a first memberships matrix to initialize the algorithm.
-Used mainly for reproducibility to compare calculations with other packages
-(e.g. in Python).}
+\item{U}{Optional initial membership matrix.
+Primarily intended for reproducibility purposes.
+If \code{NULL} (default), the algorithm uses a random initialization.}
 
-\item{function_dist}{A function of two arguments: matrices X and V of the same
-number of columns.
-It should return a matrix of (nrow(X) x nrow(V)) of distances
-between each row of X and all rows of V.
-In case of Euclidean distance, the result should not be squared!}
+\item{gammas}{Optional vector of cluster-specific gamma hyperparameters.
+If \code{NULL} (default), the initialization strategy depends on the value
+of \code{initFCM}.
 
-\item{alpha}{the scaling factor, a floating point > 0.}
+If \code{initFCM} is \code{NULL}, a vector of ones is used.
+Otherwise, a Fuzzy C-Means model is first fitted, and the
+\code{init_gamma()} function is used to estimate the cluster-specific
+gamma hyperparameters.}
 
-\item{F_}{the supervision  binary matrix of the same dimension as \emph{U}.}
+\item{initFCM}{Optional fitted Fuzzy C-Means model used to initialize
+cluster-specific gamma hyperparameters via weighted averaging.
+If \code{NULL} (default), no preliminary Fuzzy C-Means initialization is used.
+If provided, this argument is effective only when \code{gammas} is \code{NULL}.}
+
+\item{max_iter}{Maximum number of iterations.
+Defaults to \code{200}.}
+
+\item{conv_criterion}{Convergence threshold used at the end of each
+iteration of the Alternating Optimization algorithm.}
+
+\item{function_dist}{Optional distance function.
+The function must accept two matrices, \code{X} and \code{V}, with the same
+number of columns, and return a matrix of size
+\verb{nrow(X) x nrow(V)} containing distances between each row of \code{X}
+and each row of \code{V}.
+
+For the Euclidean distance, the returned distances should not be squared.
+Defaults to \code{\link[rdist:rdist]{rdist::cdist()}}.}
+
+\item{store_history}{Logical indicating whether optimization
+histories should be stored. If \code{FALSE}, the returned object
+will contain \code{NULL} history fields. Defaults to \code{TRUE}.}
+}
+\value{
+An object of class \code{pcm} containing:
+\describe{
+\item{U}{An \eqn{N \times C} membership matrix.}
+\item{V}{A \eqn{C \times p} matrix of cluster prototypes.}
+\item{function_dist}{The distance function used by the model.}
+\item{counter}{Number of iterations performed until convergence.}
+\item{gammas}{Vector of cluster-specific gamma hyperparameters.}
+\item{U_history}{If \code{store_history = TRUE}, a list of length
+\code{counter} containing membership matrices estimated at each
+iteration; otherwise \code{NULL}.}
+\item{V_history}{If \code{store_history = TRUE}, a list of length
+\code{counter} containing prototype matrices estimated at each
+iteration; otherwise \code{NULL}.}
+\item{Phi_history}{If \code{store_history = TRUE}, a list of length
+\code{counter} containing phi-weight matrices estimated at each
+iteration; otherwise \code{NULL}.}
+}
 }
 \description{
-If \emph{alpha} and \emph{F_} are not supplied (their default values are \code{NULL}),
-then a regular unsupervised Fuzzy C-Means algorithm is fitted.
+Fits a Possibilistic C-Means (PCM) clustering model using the Alternating
+Optimization algorithm.
+}
+\examples{
+X <- matrix(rnorm(100), ncol = 2)
+
+model_pcm <- fussclust::PCM(
+  X = X,
+  C = 2,
+  initFCM = TRUE
+)
+
+print(model_pcm$V)
+
+}
+\references{
+Krishnapuram, R., & Keller, J. (1993).
+\emph{A possibilistic approach to clustering}.
+IEEE Transactions on Fuzzy Systems, 1(2), 98–110.
+https://doi.org/10.1109/91.227387
 }

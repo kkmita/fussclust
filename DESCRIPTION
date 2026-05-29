@@ -1,17 +1,34 @@
 Package: fussclust
 Title: Fuzzy Unsupervised and Semi-Supervised Clustering
-Version: 0.0.0.9000
+Version: 0.1.0
 Authors@R: 
     person(
         given = "Kamil",
         family = "Kmita",
         email = "kamil.kmita17@gmail.com",
-        role = c("aut", "cre")
+        role = c("aut", "cre", "cph"),
+        comment = c(ORCID = "0000-0001-8829-2420")
     )
-Description: An ultimate package for fuzzy clustering.
+Description: Methods for distance-based fuzzy unsupervised and
+    semi-supervised clustering, including fuzzy and possibilistic models 
+    based on alternating optimization (AO) algorithm.
+    The package introduces a vectorized estimation
+    framework for prototype-based fuzzy clustering algorithms,
+    enabling modular algorithm design and extensibility.
+    It also supports storage and retrieval of intermediate AO
+    optimization results for downstream analysis and processing.
+    For more details see Kmita et al. (2024) <doi:10.1109/TFUZZ.2024.3370768>.
 License: MIT + file LICENSE
+LazyData: true
 Encoding: UTF-8
 Roxygen: list(markdown = TRUE)
 RoxygenNote: 7.3.3
+Depends: R (>= 4.1.0)
 Imports: 
     rdist
+Suggests: 
+    knitr,
+    rmarkdown,
+    testthat (>= 3.0.0)
+Config/testthat/edition: 3
+VignetteBuilder: knitr

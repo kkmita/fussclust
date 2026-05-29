@@ -15,17 +15,36 @@ knitr::opts_chunk$set(
 # fussclust
 
 <!-- badges: start -->
+[![R-CMD-check](https://github.com/kkmita/fussclust/actions/workflows/R-CMD-check.yaml/badge.svg)](https://github.com/kkmita/fussclust/actions/workflows/R-CMD-check.yaml)
 <!-- badges: end -->
 
-The goal of fussclust is to provide the R implementation of classical fuzzy clustering models.
+The goal of `fussclust` is to provide methods for fuzzy unsupervised and semi-supervised clustering, including fuzzy, possibilistic, and hybrid models.
 
 ## Installation
 
-You can install the development version of fussclust from [GitHub](https://github.com/) with:
+You can install the development version of `fussclust` from [GitHub](https://github.com/) with:
 
 ``` r
-# install.packages("pak")
-pak::pak("kkmita/fussclust")
+# install.packages("devtools")
+devtools::install_github("kkmita/fussclust")
 ```
 
+## Example
 
+This is a basic example which shows how to fit unsupervised and semi-supervised models.
+
+```{r example}
+library(fussclust)
+
+X <- matrix(rnorm(100), ncol = 2)
+
+model_fcm <- fussclust::FCM(X = X, C = 2)
+model_pcm <- fussclust::PCM(X = X, C = 2)
+
+superF <- matrix(0, nrow = nrow(X), ncol = ncol(X))
+superF[1:10, 1] <- 1
+superF[20:30, 2] <- 1
+
+model_ssfcm <- fussclust::SSFCM(X = X, C = 2, superF = superF, alpha = 1)
+model_sspcm <- fussclust::SSPCM(X = X, C = 2, superF = superF, alpha = 1)
+```

@@ -2,27 +2,23 @@
 % Please edit documentation in R/utils.R
 \name{estimate_super_T}
 \alias{estimate_super_T}
-\title{Estimated T matrix with typicalities.}
+\title{Estimated T matrix with typicalities in semi-supervised case.}
 \usage{
-estimate_super_T(X, V, superF, alpha, function_dist, gammas)
+estimate_super_T(D, superF, alpha, gammas, b = 1)
 }
 \arguments{
-\item{X}{a matrix \emph{X} of dimension (N, p) containing predictor variables.}
+\item{D}{Distances matrix of size N x c.}
 
-\item{V}{a prototypes matrix of dimension (c, p)}
+\item{superF}{Binary supervision matrix of size N x c.}
 
-\item{superF}{the supervisionbinary matrix of the same dimension as \emph{U}.}
+\item{alpha}{Scaling factor, a floating point > 0 regulating the impact of partial supervision.}
 
-\item{alpha}{a \emph{N}-vector of observation-specific scaling factor values}
+\item{gammas}{a c-vector of cluster-specific gamma hyperparameters.}
 
-\item{function_dist}{A function of two arguments: matrices X and V of the same
-number of columns.
-It should return a matrix of (nrow(X) x nrow(V)) of distances
-between each row of X and all rows of V.
-In case of Euclidean distance, the result should not be squared!}
-
-\item{gammas}{a \emph{c}-vector of cluster-specific gamma parameter}
+\item{b}{a scalar weighting the contribution of possibilistic membership in
+SPFCM (semi-supervised possibilistic fuzzy c-means) model.
+It is set to 1 by default for other semi-supervised models.}
 }
 \description{
-Estimated T matrix with typicalities.
+Estimated T matrix with typicalities in semi-supervised case.
 }

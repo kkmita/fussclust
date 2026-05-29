@@ -2,18 +2,41 @@
 % Please edit documentation in R/sspcm.R
 \name{predict.sspcm}
 \alias{predict.sspcm}
-\title{Soft assignment score function}
+\title{Predict method for \code{sspcm} objects}
 \usage{
-\method{predict}{sspcm}(object, newdata)
+\method{predict}{sspcm}(object, X, ...)
 }
 \arguments{
-\item{object}{object}
+\item{object}{An object of class \code{sspcm}.}
 
-\item{newdata}{data to be predicted}
+\item{X}{A numeric matrix of new observations with \eqn{p} columns.}
+
+\item{...}{Additional arguments. Currently ignored.}
 }
 \value{
-typicalities matrix
+A matrix of size \eqn{N \times C} containing predicted
+cluster memberships, where \eqn{C} is the number of clusters.
 }
 \description{
-Soft assignment score function
+Predicts cluster memberships for new observations using a fitted
+Semi-Supervised Possibilistic C-Means model.
+}
+\examples{
+X <- matrix(rnorm(100), ncol = 2)
+
+superF <- matrix(0, nrow = nrow(X), ncol = 2)
+
+superF[1:10, 1] <- 1
+superF[11:20, 2] <- 1
+
+model_sspcm <- SSPCM(
+  X = X,
+  C = 2,
+  superF = superF,
+  initFCM = TRUE,
+  alpha = 1
+)
+
+predict(model_sspcm, matrix(rnorm(2), ncol = 2))
+
 }

@@ -2,27 +2,15 @@
 % Please edit documentation in R/utils.R
 \name{estimate_T}
 \alias{estimate_T}
-\title{Estimated T matrix with typicalities.}
+\title{Estimated T matrix with typicalities in unsupervised case.}
 \usage{
-estimate_T(X, V, function_dist, gammas)
+estimate_T(D, gammas)
 }
 \arguments{
-\item{X}{a matrix \emph{X} of dimension (N, p) containing predictor variables.}
+\item{D}{Distances matrix of size N x c.}
 
-\item{V}{a prototypes matrix of dimension (c, p)}
-
-\item{function_dist}{A function of two arguments: matrices X and V of the same
-number of columns.
-It should return a matrix of (nrow(X) x nrow(V)) of distances
-between each row of X and all rows of V.
-In case of Euclidean distance, the result should not be squared!}
-
-\item{gammas}{a \emph{c}-vector of cluster-specific gamma parameter}
-
-\item{superF}{the supervisionbinary matrix of the same dimension as \emph{U}.}
-
-\item{alpha}{a \emph{N}-vector of observation-specific scaling factor values}
+\item{gammas}{a c-vector of cluster-specific gamma hyperparameters.}
 }
 \description{
-Estimated T matrix with typicalities.
+Estimated T matrix with typicalities in unsupervised case.
 }
