@@ -1,0 +1,122 @@
+---
+title: "underimpact"
+output:
+  rmarkdown::html_vignette:
+    number_sections: true
+vignette: >
+  %\VignetteIndexEntry{underimpact}
+  %\VignetteEngine{knitr::rmarkdown}
+  %\VignetteEncoding{UTF-8}
+---
+
+```{r, include = FALSE}
+knitr::opts_chunk$set(
+  collapse = TRUE,
+  comment = "#>"
+)
+```
+
+```{r setup}
+set.seed(42)
+
+library(fussclust)
+# library(ggplot2)
+
+data("superFstruct_underimpact")
+data("U_underimpact")
+
+Tp0 <- matrix(runif(150 * 3), ncol = 3)
+```
+
+# Prepare data
+
+```{r}
+models_iris <- list()
+models_iris_2 <- list()
+alphas <- seq(from = 0.01, to = 1, by = 0.01)
+X <- iris[, c("Sepal.Length", "Sepal.Width")] |> as.matrix()
+
+sfu <- superFstruct_underimpact
+```
+
+Underimpact-plot function
+
+```{r}
+# create_uplot <- function(.models, .alphas, .filter = NA) {
+#   outcomes <- vector()
+#   
+#   for (i in 2:length(.models)) {
+#     outcomes <- c(outcomes,
+#                   base::norm(.models[[i]]$V - .models[[i-1]]$V, type = "f"))
+#   }
+#   
+#   df_for_uplot <- data.frame(
+#     alpha = .alphas[-1],
+#     value = outcomes
+#   )
+#   
+#   if (!is.na(.filter)) {
+#     df_for_uplot <- df_for_uplot %>% filter(alpha <= .filter)
+#   }
+#   
+#   uplot <- ggplot(df_for_uplot, aes(alpha, value)) +
+#     geom_point() +
+#     geom_line() +
+#     ylab("$\\delta_r$") +
+#     xlab("$\\alpha_r$") +
+#     theme(
+#       axis.text.x = element_text(size = 14),
+#       axis.text.y = element_text(size = 14),
+#       axis.title.x = element_text(size = 16), #, margin = margin(t = 10)),
+#       axis.title.y = element_text(size = 16),
+#       legend.position = "none"
+#     )
+#   
+#   return(list(df = df_for_uplot, uplot = uplot))
+# }
+```
+
+
+# SSFCM model
+
+
+```{r}
+for (k in seq_along(alphas)) {
+  models_iris[[k]] <- fussclust::SSFCM(
+    X = X[-sfu$tind, ], 
+    C = 3, 
+    U = U_underimpact[-sfu$tind, ],
+    superF = sfu$superF[-sfu$tind, ],
+    alpha = alphas[k]
+  )
+}
+
+# rc <- create_uplot(models_iris, alphas)
+```
+
+```{r}
+# rc$uplot
+```
+
+# SPFCM model
+
+```{r}
+for (k in seq_along(alphas)) {
+  models_iris_2[[k]] <- fussclust::SPFCM(
+    X = X[-sfu$tind, ], 
+    C = 3, 
+    U = U_underimpact[-sfu$tind, ],
+    Tp = Tp0[-sfu$tind, ],
+    superF = sfu$superF[-sfu$tind, ],
+    alpha = alphas[k],
+    a = 0.1,
+    b = 0.01
+  )
+}
+
+# rc2 <- create_uplot(models_iris_2, alphas)
+```
+
+```{r}
+# rc2$uplot
+```
