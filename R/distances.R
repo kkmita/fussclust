@@ -98,3 +98,33 @@ adist <- function(X, V, Phi, rho = NULL) {
   
   return(D)
 }
+
+
+distance_control <- function(rho = NULL) {
+  list(rho = rho)
+}
+
+
+.compute_distance <- function(
+    X,
+    V,
+    Phi,
+    distance = c("cdist", "adist"),
+    control = distance_control()
+) {
+  
+  distance <- match.arg(distance)
+  
+  switch(
+    distance,
+    cdist = rdist::cdist(X, V),
+    adist = adist(
+      X = X,
+      V = V,
+      Phi = Phi,
+      rho = control$rho
+    )
+  )
+}
+
+
