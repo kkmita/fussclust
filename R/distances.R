@@ -95,3 +95,62 @@ adist <- function(X, V, Phi, rho = NULL) {
   
   return(D)
 }
+
+
+#' Control parameters for built-in distance functions
+#'
+#' @param rho Optional tuning parameter for adaptive distance.
+#'
+#' @return A list of control parameters.
+#'
+#' @export
+#'
+distance_control <- function(rho = NULL) {
+  list(rho = rho)
+}
+
+
+#' Compute a distance matrix
+#'
+#' Computes the raw distance matrix using either one of the built-in
+#' implementations or a user-defined distance function.
+#'
+#' Built-in implementations:
+#'   - "cdist"
+#'   - "adaptive"
+#'
+#' User-defined distance functions must accept a single argument `ctx`,
+#' a named list containing the variables available in the current model.
+#'
+#' @param ctx A named list representing the model context.
+#' @param distance Either a built-in distance name or a custom function.
+#' @param control Control parameters for built-in distance methods.
+#'
+#' @return A distance matrix.
+#'
+compute_distance <- function(ctx,
+                             distance = "cdist",
+                             control = distance_control()) {
+  if (is.character(distance)) {
+    distance <- match.arg(distance, c("cdist", "adaptive"))
+    
+    return(switch(
+      distance,
+      cdist = rdist::cdist(X = ctx$X,
+                           V = ctx$V),
+      adaptive = adaptive_distance(
+        X = ctx$X,
+        V = ctx$V,
+        Phi = ctx$Phi,
+        rho = control$rho
+      )
+    ))
+  }
+  
+  if (is.function(distance)) {
+    return(distance(ctx))
+  }
+  
+  stop("`distance` must be one of 'cdist', 'adaptive', or a function.",
+       call. = FALSE)
+}
