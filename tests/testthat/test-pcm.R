@@ -18,3 +18,20 @@ test_that("History store in PCM", {
     "list"
   )
 })
+
+test_that("Different value of m changes results", {
+  expect_false(
+    isTRUE(
+      all.equal(
+        PCM(X = X, U = U0, C = 3, m = 2)$V,
+        PCM(X = X, U = U0, C = 3, m = 10)$V
+      )
+    )
+  )
+})
+
+test_that("Value of m must be > 1", {
+  expect_error(
+    PCM(X = X, C = 2, m = 1)
+  )
+})
