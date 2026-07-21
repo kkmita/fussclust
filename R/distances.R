@@ -57,7 +57,9 @@
 #' stability.
 #'
 #' @references
-#' D. E. Gustafson and W. C. Kessel (1978) <doi: 10.1109/CDC.1978.268028>
+#' D. E. Gustafson and W. C. Kessel (1978) <doi:10.1109/CDC.1978.268028>
+#' 
+#' @references
 #' Antoine et al. (2022) <doi:10.1016/j.fss.2022.08.003>
 #'
 #' @export
