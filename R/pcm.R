@@ -120,7 +120,7 @@ PCM <- function(
   }
 
   # Rows of U should sum up to 1
-  U <- t(apply(U, 1, function(x) x / sum(x)))
+  U <- U / rowSums(U)
 
   if (is.null(gammas)) {
     if (is.null(initFCM)) {
