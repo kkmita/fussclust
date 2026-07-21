@@ -107,6 +107,8 @@ PCM <- function(
   function_dist = rdist::cdist,
   store_history = FALSE
 ) {
+  stopifnot(m > 1)
+  
   if ((!is.numeric(gammas) & !is.null(gammas)) ||
     (is.numeric(gammas) & length(gammas) != C)
   ) {
