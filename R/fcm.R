@@ -11,6 +11,9 @@
 #' @param U Optional initial membership matrix.
 #' Primarily intended for reproducibility purposes.
 #' If `NULL` (default), the algorithm uses a random initialization.
+#' 
+#' @param m Optional value of fuzzifier m > 1.
+#' Defaults to `2`.
 #'
 #' @param max_iter Maximum number of iterations.
 #' Defaults to `200`.
@@ -35,6 +38,7 @@
 #' \describe{
 #'   \item{U}{An \eqn{N \times C} membership matrix.}
 #'   \item{V}{A \eqn{C \times p} matrix of cluster prototypes.}
+#'   \item{m}{The value of the fuzzifier used by the model.}
 #'   \item{function_dist}{The distance function used by the model.}
 #'   \item{counter}{Number of iterations performed until convergence.}
 #'   \item{U_history}{If `store_history = TRUE`, a list of length
@@ -55,6 +59,7 @@
 #' https://doi.org/10.1007/978-1-4757-0450-1
 #'
 #' @examples
+#' set.seed(42)
 #' X <- matrix(rnorm(100), ncol = 2)
 #'
 #' model_fcm <- fussclust::FCM(
@@ -62,24 +67,36 @@
 #'   C = 2
 #' )
 #'
-#' print(model_fcm$V)
+#' print(model_fcm$V |> round(2))
+#' 
+#' model_fcm <- fussclust::FCM(
+#'   X = X,
+#'   C = 2,
+#'   m = 1.5
+#' )
+#'
+#' print(model_fcm$V |> round(2))
 #'
 #' @export
+#' 
 FCM <- function(
   X,
   C,
   U = NULL,
+  m = 2,
   max_iter = 200,
   conv_criterion = 1e-4,
   function_dist = rdist::cdist,
   store_history = FALSE
 ) {
+  stopifnot(m > 1)
+  
   if (is.null(U)) {
     U <- matrix(stats::runif(nrow(X) * C), ncol = C)
   }
 
   # Rows of U should sum up to 1
-  U <- t(apply(U, 1, function(x) x / sum(x)))
+  U <- U / rowSums(U)
 
   counter <- 0
 
@@ -99,7 +116,7 @@ FCM <- function(
 
     Phi <- U_previous_iter^2
     V <- estimate_V(Phi, X)
-    D <- function_dist(X, V)^2
+    D <- function_dist(X, V)^{2 / (m-1)}
     U <- calculate_evidence(D)
 
     if (store_history) {
@@ -118,6 +135,7 @@ FCM <- function(
   z <- list(
     U = U,
     V = V,
+    m = m,
     function_dist = function_dist,
     counter = counter,
     U_history = U_history,

@@ -8,6 +8,7 @@ FCM(
   X,
   C,
   U = NULL,
+  m = 2,
   max_iter = 200,
   conv_criterion = 1e-04,
   function_dist = rdist::cdist,
@@ -22,6 +23,9 @@ FCM(
 \item{U}{Optional initial membership matrix.
 Primarily intended for reproducibility purposes.
 If \code{NULL} (default), the algorithm uses a random initialization.}
+
+\item{m}{Optional value of fuzzifier m > 1.
+Defaults to \code{2}.}
 
 \item{max_iter}{Maximum number of iterations.
 Defaults to \code{200}.}
@@ -47,6 +51,7 @@ An object of class \code{fcm} containing:
 \describe{
 \item{U}{An \eqn{N \times C} membership matrix.}
 \item{V}{A \eqn{C \times p} matrix of cluster prototypes.}
+\item{m}{The value of the fuzzifier used by the model.}
 \item{function_dist}{The distance function used by the model.}
 \item{counter}{Number of iterations performed until convergence.}
 \item{U_history}{If \code{store_history = TRUE}, a list of length
@@ -65,6 +70,7 @@ Fits a Fuzzy C-Means (FCM) clustering model using the Alternating
 Optimization algorithm.
 }
 \examples{
+set.seed(42)
 X <- matrix(rnorm(100), ncol = 2)
 
 model_fcm <- fussclust::FCM(
@@ -72,7 +78,15 @@ model_fcm <- fussclust::FCM(
   C = 2
 )
 
-print(model_fcm$V)
+print(model_fcm$V |> round(2))
+
+model_fcm <- fussclust::FCM(
+  X = X,
+  C = 2,
+  m = 1.5
+)
+
+print(model_fcm$V |> round(2))
 
 }
 \references{

@@ -18,3 +18,20 @@ test_that("History store in FCM", {
     "list"
   )
 })
+
+test_that("Different value of m changes results", {
+  expect_false(
+    isTRUE(
+      all.equal(
+        FCM(X = Xdummy, U = Udummy, C = 2, m = 2)$V,
+        FCM(X = Xdummy, U = Udummy, C = 2, m = 10)$V
+      )
+    )
+  )
+})
+
+test_that("Value of m must be > 1", {
+  expect_error(
+    FCM(X = Xdummy, C = 2, m = 1)
+  )
+})
