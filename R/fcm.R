@@ -38,6 +38,7 @@
 #' \describe{
 #'   \item{U}{An \eqn{N \times C} membership matrix.}
 #'   \item{V}{A \eqn{C \times p} matrix of cluster prototypes.}
+#'   \item{m}{The value of the fuzzifier used by the model.}
 #'   \item{function_dist}{The distance function used by the model.}
 #'   \item{counter}{Number of iterations performed until convergence.}
 #'   \item{U_history}{If `store_history = TRUE`, a list of length
@@ -133,6 +134,7 @@ FCM <- function(
   z <- list(
     U = U,
     V = V,
+    m = m,
     function_dist = function_dist,
     counter = counter,
     U_history = U_history,
