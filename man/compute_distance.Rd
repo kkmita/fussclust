@@ -29,4 +29,8 @@ Built-in implementations:
 
 User-defined distance functions must accept a single argument \code{ctx},
 a named list containing the variables available in the current model.
+
+Note that \code{rdist::cdist} returns \eqn{D = [d_{jk}]}, and hence its
+result must be raised to the power of \eqn{2}, whereas \code{adist}
+return as \eqn{D = [d^2_{jk}]}.
 }
