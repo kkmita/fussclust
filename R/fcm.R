@@ -94,7 +94,7 @@ FCM <- function(
   }
 
   # Rows of U should sum up to 1
-  U <- t(apply(U, 1, function(x) x / sum(x)))
+  U <- U / rowSums(U)
 
   counter <- 0
 
