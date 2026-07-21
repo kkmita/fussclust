@@ -10,6 +10,7 @@ PCM(
   U = NULL,
   gammas = NULL,
   initFCM = NULL,
+  m = 2,
   max_iter = 200,
   conv_criterion = 1e-04,
   function_dist = rdist::cdist,
@@ -39,6 +40,9 @@ cluster-specific gamma hyperparameters via weighted averaging.
 If \code{NULL} (default), no preliminary Fuzzy C-Means initialization is used.
 If provided, this argument is effective only when \code{gammas} is \code{NULL}.}
 
+\item{m}{Optional value of fuzzifier m > 1.
+Defaults to \code{2}.}
+
 \item{max_iter}{Maximum number of iterations.
 Defaults to \code{200}.}
 
@@ -66,6 +70,7 @@ An object of class \code{pcm} containing:
 \item{function_dist}{The distance function used by the model.}
 \item{counter}{Number of iterations performed until convergence.}
 \item{gammas}{Vector of cluster-specific gamma hyperparameters.}
+\item{m}{The value of the fuzzifier used by the model.}
 \item{U_history}{If \code{store_history = TRUE}, a list of length
 \code{counter} containing membership matrices estimated at each
 iteration; otherwise \code{NULL}.}
@@ -82,6 +87,7 @@ Fits a Possibilistic C-Means (PCM) clustering model using the Alternating
 Optimization algorithm.
 }
 \examples{
+set.seed(42)
 X <- matrix(rnorm(100), ncol = 2)
 
 model_pcm <- fussclust::PCM(
@@ -90,7 +96,16 @@ model_pcm <- fussclust::PCM(
   initFCM = TRUE
 )
 
-print(model_pcm$V)
+print(model_pcm$V |> round(2))
+
+model_pcm <- fussclust::PCM(
+  X = X,
+  C = 2,
+  initFCM = TRUE,
+  m = 5
+)
+
+print(model_pcm$V |> round(2))
 
 }
 \references{

@@ -25,6 +25,9 @@
 #' cluster-specific gamma hyperparameters via weighted averaging.
 #' If `NULL` (default), no preliminary Fuzzy C-Means initialization is used.
 #' If provided, this argument is effective only when `gammas` is `NULL`.
+#' 
+#' @param m Optional value of fuzzifier m > 1.
+#' Defaults to `2`.
 #'
 #' @param max_iter Maximum number of iterations.
 #' Defaults to `200`.
@@ -52,6 +55,7 @@
 #'   \item{function_dist}{The distance function used by the model.}
 #'   \item{counter}{Number of iterations performed until convergence.}
 #'   \item{gammas}{Vector of cluster-specific gamma hyperparameters.}
+#'   \item{m}{The value of the fuzzifier used by the model.}   
 #'   \item{U_history}{If `store_history = TRUE`, a list of length
 #'   `counter` containing membership matrices estimated at each
 #'   iteration; otherwise `NULL`.}
@@ -70,6 +74,7 @@
 #' https://doi.org/10.1109/91.227387
 #'
 #' @examples
+#' set.seed(42)
 #' X <- matrix(rnorm(100), ncol = 2)
 #'
 #' model_pcm <- fussclust::PCM(
@@ -78,7 +83,16 @@
 #'   initFCM = TRUE
 #' )
 #'
-#' print(model_pcm$V)
+#' print(model_pcm$V |> round(2))
+#' 
+#' model_pcm <- fussclust::PCM(
+#'   X = X,
+#'   C = 2,
+#'   initFCM = TRUE,
+#'   m = 5
+#' )
+#'
+#' print(model_pcm$V |> round(2))
 #'
 #' @export
 PCM <- function(
@@ -87,6 +101,7 @@ PCM <- function(
   U = NULL,
   gammas = NULL,
   initFCM = NULL,
+  m = 2,
   max_iter = 200,
   conv_criterion = 1e-4,
   function_dist = rdist::cdist,
@@ -134,7 +149,7 @@ PCM <- function(
 
     Phi <- U_previous_iter^2
     V <- estimate_V(Phi, X)
-    U <- estimate_T(D = function_dist(X, V)^2, gammas)
+    U <- estimate_T(D = function_dist(X, V)^{2 / (m-1)}, gammas^{1 / (m-1)})
 
     if (store_history) {
       U_history[[counter]] <- U
@@ -155,6 +170,7 @@ PCM <- function(
     function_dist = function_dist,
     counter = counter,
     gammas = gammas,
+    m = m,
     U_history = U_history,
     V_history = V_history,
     Phi_history = Phi_history
