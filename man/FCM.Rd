@@ -70,6 +70,7 @@ Fits a Fuzzy C-Means (FCM) clustering model using the Alternating
 Optimization algorithm.
 }
 \examples{
+set.seed(42)
 X <- matrix(rnorm(100), ncol = 2)
 
 model_fcm <- fussclust::FCM(
@@ -82,7 +83,7 @@ print(model_fcm$V |> round(2))
 model_fcm <- fussclust::FCM(
   X = X,
   C = 2,
-  m = 1.01
+  m = 1.5
 )
 
 print(model_fcm$V |> round(2))

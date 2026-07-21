@@ -59,6 +59,7 @@
 #' https://doi.org/10.1007/978-1-4757-0450-1
 #'
 #' @examples
+#' set.seed(42)
 #' X <- matrix(rnorm(100), ncol = 2)
 #'
 #' model_fcm <- fussclust::FCM(
@@ -71,7 +72,7 @@
 #' model_fcm <- fussclust::FCM(
 #'   X = X,
 #'   C = 2,
-#'   m = 1.01
+#'   m = 1.5
 #' )
 #'
 #' print(model_fcm$V |> round(2))
