@@ -121,6 +121,10 @@ distance_control <- function(rho = NULL) {
 #'
 #' User-defined distance functions must accept a single argument `ctx`,
 #' a named list containing the variables available in the current model.
+#' 
+#' Note that `rdist::cdist` returns \eqn{D = [d_{jk}]}, and hence its
+#' result must be raised to the power of \eqn{2}, whereas `adist`
+#' return as \eqn{D = [d^2_{jk}]}.
 #'
 #' @param ctx A named list representing the model context.
 #' @param distance Either a built-in distance name or a custom function.
@@ -136,9 +140,8 @@ compute_distance <- function(ctx,
     
     return(switch(
       distance,
-      cdist = rdist::cdist(X = ctx$X,
-                           V = ctx$V),
-      adaptive = adaptive_distance(
+      cdist = rdist::cdist(ctx$X, ctx$V, metric = "euclidean")^2,
+      adaptive = adist(
         X = ctx$X,
         V = ctx$V,
         Phi = ctx$Phi,
