@@ -11,6 +11,9 @@
 #' @param U Optional initial membership matrix.
 #' Primarily intended for reproducibility purposes.
 #' If `NULL` (default), the algorithm uses a random initialization.
+#' 
+#' @param m Optional value of fuzzifier m > 1.
+#' Defaults to `2`.
 #'
 #' @param max_iter Maximum number of iterations.
 #' Defaults to `200`.
@@ -62,18 +65,30 @@
 #'   C = 2
 #' )
 #'
-#' print(model_fcm$V)
+#' print(model_fcm$V |> round(2))
+#' 
+#' model_fcm <- fussclust::FCM(
+#'   X = X,
+#'   C = 2,
+#'   m = 1.01
+#' )
+#'
+#' print(model_fcm$V |> round(2))
 #'
 #' @export
+#' 
 FCM <- function(
   X,
   C,
   U = NULL,
+  m = 2,
   max_iter = 200,
   conv_criterion = 1e-4,
   function_dist = rdist::cdist,
   store_history = FALSE
 ) {
+  stopifnot(m > 1)
+  
   if (is.null(U)) {
     U <- matrix(stats::runif(nrow(X) * C), ncol = C)
   }
@@ -99,7 +114,7 @@ FCM <- function(
 
     Phi <- U_previous_iter^2
     V <- estimate_V(Phi, X)
-    D <- function_dist(X, V)^2
+    D <- function_dist(X, V)^{2 / (m-1)}
     U <- calculate_evidence(D)
 
     if (store_history) {
