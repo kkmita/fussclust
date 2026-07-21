@@ -160,7 +160,7 @@ SSPCM <- function(
     counter <- counter + 1
     U_previous_iter <- U
 
-    Phi <- U_previous_iter^2 + (U_previous_iter - F)^2 * alpha * rowSums(superF)
+    Phi <- U_previous_iter^2 + (U_previous_iter - superF)^2 * alpha * rowSums(superF)
     V <- estimate_V(Phi, X)
 
     U <- estimate_super_T(
