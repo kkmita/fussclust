@@ -109,6 +109,9 @@ SSFCM <- function(
 
   # Rows of U should sum up to 1
   U <- t(apply(U, 1, function(x) x / sum(x)))
+  
+  # enabling degenerate starting matrix
+  U[is.nan(U)] <- 0
 
   counter <- 0
 
