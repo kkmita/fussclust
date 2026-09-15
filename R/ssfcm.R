@@ -137,6 +137,9 @@ SSFCM <- function(
       superF = superF,
       alpha = alpha
     )
+    
+    # if distance is 0 `estimate_U` will yield NaN
+    U[is.nan(U)] <- 0
 
     if (store_history) {
       U_history[[counter]] <- U
